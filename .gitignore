@@ -1,0 +1,63 @@
+# ====== Python ======
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# ====== 虚拟环境 ======
+venv/
+.venv/
+env/
+ENV/
+
+# ====== 数据库 ======
+*.db
+*.sqlite3
+smartmall.db
+
+# ====== 环境变量 ======
+.env
+.env.local
+.env.production
+
+# ====== IDE ======
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ====== OS ======
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ====== 日志 ======
+*.log
+logs/
+
+# ====== 上传文件 ======
+uploads/
+!uploads/.gitkeep
+
+# ====== ChromaDB ======
+chroma_db/
+
+# ====== Node ======
+node_modules/
+frontend/dist/
+frontend/node_modules/
+
+# ====== Docker ======
+nginx/certs/
+
+# ====== 临时文件 ======
+*.tmp
+*.bak
+startup_log.txt
