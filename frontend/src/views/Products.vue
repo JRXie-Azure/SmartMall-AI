@@ -13,13 +13,37 @@
         <el-button type="primary" @click="search">搜索</el-button>
       </div>
       <div class="filter-tags">
-        <el-radio-group v-model="sort" @change="loadProducts">
+        <el-radio-group v-model="sort">
           <el-radio-button value="sales">热销</el-radio-button>
           <el-radio-button value="price_asc">价格 ↑</el-radio-button>
           <el-radio-button value="price_desc">价格 ↓</el-radio-button>
           <el-radio-button value="rating">评分</el-radio-button>
           <el-radio-button value="newest">最新</el-radio-button>
         </el-radio-group>
+      </div>
+    </div>
+
+    <!-- 热门搜索 + 品牌筛选 -->
+    <div class="extra-filters">
+      <div v-if="hotSearches.length" class="hot-searches">
+        <span class="filter-label">热门搜索:</span>
+        <el-tag
+          v-for="h in hotSearches"
+          :key="h.keyword"
+          class="hot-tag"
+          size="small"
+          effect="plain"
+          @click="keyword = h.keyword; search()"
+        >
+          {{ h.keyword }}
+        </el-tag>
+      </div>
+      <div v-if="brands.length" class="brand-filter">
+        <span class="filter-label">品牌:</span>
+        <el-select v-model="selectedBrand" placeholder="全部品牌" clearable size="small" @change="handleBrandChange" style="width: 140px">
+          <el-option label="全部品牌" value="" />
+          <el-option v-for="b in brands" :key="b.name" :label="`${b.name} (${b.count})`" :value="b.name" />
+        </el-select>
       </div>
     </div>
 
@@ -69,7 +93,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { productsAPI } from '../api'
+import { productsAPI, searchAPI } from '../api'
 import { Search } from '@element-plus/icons-vue'
 import ProductCard from '../components/ProductCard.vue'
 
@@ -85,6 +109,9 @@ const pageSize = 12
 const keyword = ref(route.query.keyword || '')
 const sort = ref('sales')
 const categoryId = ref(Number(route.query.category) || 0)
+const brands = ref([])
+const hotSearches = ref([])
+const selectedBrand = ref('')
 
 async function loadProducts() {
   loading.value = true
@@ -92,6 +119,7 @@ async function loadProducts() {
     const params = { page: page.value, page_size: pageSize, sort: sort.value }
     if (keyword.value) params.keyword = keyword.value
     if (categoryId.value) params.category_id = categoryId.value
+    if (selectedBrand.value) params.brand = selectedBrand.value
     const res = await productsAPI.getList(params)
     products.value = Array.isArray(res.data) ? res.data : (res.data?.items || [])
     total.value = res.data?.total || products.value.length
@@ -114,10 +142,21 @@ function handleCategoryChange(idx) {
   loadProducts()
 }
 
+function handleBrandChange() {
+  page.value = 1
+  loadProducts()
+}
+
 onMounted(async () => {
   try {
-    const res = await productsAPI.getCategories()
-    categories.value = res.data || []
+    const [catRes, brandRes, hotRes] = await Promise.all([
+      productsAPI.getCategories(),
+      searchAPI.brands().catch(() => ({ data: [] })),
+      searchAPI.hot().catch(() => ({ data: [] })),
+    ])
+    categories.value = catRes.data || []
+    brands.value = brandRes.data || []
+    hotSearches.value = (hotRes.data || []).slice(0, 8)
   } catch {}
   loadProducts()
 })
@@ -170,6 +209,24 @@ watch(sort, () => { page.value = 1; loadProducts() })
 .empty { text-align: center; padding: 60px 0; color: var(--text-light); }
 .empty-icon { font-size: 48px; display: block; margin-bottom: 12px; }
 .pagination { display: flex; justify-content: center; margin-top: 32px; }
+
+.extra-filters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.filter-label { font-size: 13px; color: var(--text-light); margin-right: 8px; }
+.hot-searches { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hot-tag { cursor: pointer; }
+.hot-tag:hover { color: var(--primary); border-color: var(--primary); }
+.brand-filter { display: flex; align-items: center; gap: 8px; }
 
 @media (max-width: 1024px) {
   .product-grid, .loading-grid { grid-template-columns: repeat(2, 1fr); }

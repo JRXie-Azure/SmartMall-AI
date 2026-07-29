@@ -12,7 +12,12 @@
           <el-input v-model="form.username" placeholder="请输入用户名" :prefix-icon="User" size="large" />
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="form.password" type="password" placeholder="至少6位密码" :prefix-icon="Lock" size="large" show-password />
+          <el-input v-model="form.password" type="password" placeholder="至少8位，含大写字母和数字" :prefix-icon="Lock" size="large" show-password />
+          <div class="pwd-hint">
+            <span :class="pwdHint.len">&#x2713; 至少8位</span>
+            <span :class="pwdHint.upper">&#x2713; 含大写字母</span>
+            <span :class="pwdHint.digit">&#x2713; 含数字</span>
+          </div>
         </el-form-item>
         <el-button type="primary" size="large" native-type="submit" :loading="auth.loading" style="width:100%;margin-top:8px">
           注册
@@ -28,14 +33,30 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useCartStore } from '../stores/cart'
 import { User, Lock, Message } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const auth = useAuthStore()
+const cart = useCartStore()
+
+const pwdHint = computed(() => ({
+  len: form.password.length >= 8 ? 'ok' : '',
+  upper: /[A-Z]/.test(form.password) ? 'ok' : '',
+  digit: /[0-9]/.test(form.password) ? 'ok' : '',
+}))
+
+const validatePassword = (_rule, value, callback) => {
+  if (!value) return callback(new Error('请输入密码'))
+  if (value.length < 8) return callback(new Error('密码至少8位'))
+  if (!/[A-Z]/.test(value)) return callback(new Error('密码必须包含至少一个大写字母'))
+  if (!/[0-9]/.test(value)) return callback(new Error('密码必须包含至少一个数字'))
+  callback()
+}
 
 const form = reactive({ email: '', username: '', password: '' })
 const rules = {
@@ -48,16 +69,23 @@ const rules = {
     { min: 3, max: 20, message: '用户名长度3-20位', trigger: 'blur' }
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码至少6位', trigger: 'blur' }
+    { required: true, validator: validatePassword, trigger: 'blur' }
   ]
 }
 
 async function handleRegister() {
   const ok = await auth.register(form.email, form.username, form.password)
   if (ok) {
-    ElMessage.success('注册成功，请登录！')
-    router.push('/login')
+    // 注册成功后自动登录
+    const loginOk = await auth.login(form.username, form.password)
+    if (loginOk) {
+      ElMessage.success('注册成功！')
+      cart.fetchCart()
+      router.push('/')
+    } else {
+      ElMessage.success('注册成功，请登录！')
+      router.push('/login')
+    }
   }
 }
 </script>
@@ -79,4 +107,7 @@ async function handleRegister() {
 .auth-sub { font-size: 14px; color: var(--text-light); text-align: center; margin-bottom: 32px; }
 .auth-footer { text-align: center; margin-top: 20px; font-size: 13px; color: var(--text-light); }
 .auth-footer a { color: var(--primary); font-weight: 600; margin-left: 4px; }
+.pwd-hint { display: flex; gap: 12px; margin-top: 4px; font-size: 12px; }
+.pwd-hint span { color: #c0c4cc; transition: color .2s; }
+.pwd-hint span.ok { color: #16a34a; }
 </style>

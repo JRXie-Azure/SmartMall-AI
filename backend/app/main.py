@@ -1,7 +1,11 @@
-"""
+﻿"""
 SmartMall AI — FastAPI 入口
-挂载所有路由: auth / products / cart / orders / ai / admin / search / websocket
+挂载核心路由: auth / products / cart / orders / ai / search
 """
+import os
+import logging
+import logging.handlers
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -9,85 +13,78 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from app.database import engine, Base
 from app.config import get_settings
-from app.routers import auth, products, cart, orders, ai, admin, search, websocket
+from app.middleware import RateLimitMiddleware, RequestLoggingMiddleware
+from app.routers import auth, products, cart, orders, ai, search, admin
 
 settings = get_settings()
 
-# 创建数据库表
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(
-    title=f"{settings.APP_NAME} - 智能电商平台",
-    description="""
-    AI 赋能的全栈电商平台 API
+log_dir = os.path.join(os.path.dirname(__file__), "..", "logs")
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, "smartmall.log")
 
-    ## 核心功能
-    - **AI 智能对话**: 接入 DeepSeek LLM，支持 Function Calling、SSE 流式响应
-    - **RAG 语义搜索**: sentence-transformers + ChromaDB 向量检索
-    - **协同过滤推荐**: 基于用户行为的个性化推荐
-    - **WebSocket 实时客服**: AI 先接 + 转人工
-    - **完整电商闭环**: 商品/购物车/订单/评价/收藏
-    - **管理后台**: 数据看板 + 商品/用户/订单管理
-    """,
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.handlers.TimedRotatingFileHandler(
+            log_file, when="midnight", backupCount=7, encoding="utf-8"
+        ),
+    ],
+)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger = logging.getLogger("uvicorn")
+    logger.info(f"🚀 {settings.APP_NAME} v{settings.APP_VERSION} 启动成功")
+    yield
+    logger.info(f"👋 {settings.APP_NAME} 正在关闭...")
+
+app = FastAPI(
+    lifespan=lifespan,
+    title=f"{settings.APP_NAME} - 智能电商平台",
     version=settings.APP_VERSION,
 )
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ====== 路由挂载 ======
+app.add_middleware(RateLimitMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
+
 app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(cart.router)
 app.include_router(orders.router)
 app.include_router(ai.router)
-app.include_router(admin.router)
 app.include_router(search.router)
-app.include_router(websocket.router)
+app.include_router(admin.router)  # 管理后台路由
 
-# ====== 静态文件 ======
 static_path = Path(__file__).parent.parent / "static"
 if static_path.exists():
     app.mount("/static", StaticFiles(directory=static_path), name="static")
 
-# 上传文件目录
 upload_path = Path(settings.UPLOAD_DIR)
 upload_path.mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(upload_path)), name="uploads")
 
-
 @app.get("/")
 async def root():
-    """根路径 — 返回前端页面"""
     index_file = static_path / "index.html"
     if index_file.exists():
         return FileResponse(index_file)
     return {"message": f"Welcome to {settings.APP_NAME}", "docs": "/docs"}
 
-
 @app.get("/api/health")
 async def health():
-    return {
-        "status": "ok",
-        "version": settings.APP_VERSION,
-        "llm_enabled": bool(settings.llm_api_key),
-    }
+    return {"status": "ok", "version": settings.APP_VERSION}
 
 
-@app.on_event("startup")
-async def startup_event():
-    """启动时初始化"""
-    from app.database import get_redis
-    import logging
-    logger = logging.getLogger("uvicorn")
-    logger.info(f"🚀 {settings.APP_NAME} v{settings.APP_VERSION} 启动成功")
-    logger.info(f"📊 数据库: {'MySQL' if settings.is_mysql else 'SQLite'}")
-    logger.info(f"🔍 LLM: {settings.llm_model if settings.llm_api_key else '未配置'}")
-    r = get_redis()
-    logger.info(f"💾 Redis: {'已连接' if r else '未启用 (内存缓存降级)'}")
+

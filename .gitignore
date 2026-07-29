@@ -41,13 +41,12 @@ desktop.ini
 # ====== 日志 ======
 *.log
 logs/
+stdout.log
+stderr.log
 
 # ====== 上传文件 ======
 uploads/
 !uploads/.gitkeep
-
-# ====== ChromaDB ======
-chroma_db/
 
 # ====== Node ======
 node_modules/
@@ -57,7 +56,62 @@ frontend/node_modules/
 # ====== Docker ======
 nginx/certs/
 
-# ====== 临时文件 ======
+# ====== 临时/开发脚本 ======
 *.tmp
 *.bak
 startup_log.txt
+dl.py
+run.bat
+run.py
+start.bat
+start_server.bat
+restart.bat
+launch.ps1
+PROJECT_STATUS.md
+
+# ====== 清理脚本 ======
+cleanup_for_github.ps1
+
+# ====== 临时调试 ======
+backend/debug_start.py
+backend/diag.py
+backend/migrate.py
+backend/rebuild_db.py
+backend/test_api.py
+backend/test_auth.py
+backend/test_jwt.py
+backend/launch_server.py
+backend/run_server.py
+backend/server.py
+backend/start_app.py
+backend/startup_log.txt
+backend/*.bak
+backend/static/*.bak
+dl.py
+# Test/coverage artifacts
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# SSL/payment certs
+*.pem
+certs/
+
+# Backup files
+*.bak
+*.bak.*
+
+# Debug scripts
+backend/test_s3.py
+backend/test_payment.py
+backend/test_llm.py
+backend/check_redis.py
+backend/migrate_prod.py
+backend/run_job.ps1
+
+# Misc
+start8001.bat
+Dockerfile.frontend
+PROJECT_AUDIT.md
+PROJECT_STATUS.md

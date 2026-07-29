@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="cart-page container">
     <h1 class="page-title">我的购物车</h1>
 
@@ -35,7 +35,28 @@
           <span>商品合计</span>
           <span class="total-price">¥{{ cart.totalPrice.toFixed(2) }}</span>
         </div>
-        <el-button type="primary" size="large" style="width:100%;margin-top:16px" @click="checkout">立即结算</el-button>
+        <!-- 优惠券 -->
+      <div class="coupon-section" style="margin-bottom:12px">
+        <el-input
+          v-model="couponCode"
+          placeholder="输入优惠码"
+          size="small"
+          style="width:160px"
+          :disabled="couponApplied"
+        />
+        <el-button size="small" @click="applyCoupon" :loading="couponLoading" :disabled="couponApplied">
+          {{ couponApplied ? '已使用' : '应用' }}
+        </el-button>
+        <span v-if="couponApplied" style="color:#e74c3c;font-size:13px;margin-left:8px">
+          -¥{{ couponDiscount }}
+        </span>
+      </div>
+
+      <el-button type="primary" size="large" style="width:100%;margin-top:16px" @click="checkout">立即结算</el-button>
+      <div v-if="couponApplied" class="summary-row" style="margin-top:8px">
+        <span>实付金额</span>
+        <span class="total-price" style="color:#e74c3c">¥{{ Math.max(0, (cart.totalPrice - couponDiscount)).toFixed(2) }}</span>
+      </div>
       </div>
     </div>
   </div>
@@ -45,19 +66,41 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '../stores/cart'
-import { ordersAPI } from '../api'
+import { ordersAPI, couponAPI } from '../api'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const cart = useCartStore()
 const loading = ref(true)
+const couponCode = ref('')
+const couponApplied = ref(false)
+const couponDiscount = ref(0)
+const couponLoading = ref(false)
+
+async function applyCoupon() {
+  if (!couponCode.value.trim()) { ElMessage.warning('请输入优惠码'); return }
+  couponLoading.value = true
+  try {
+    const res = await couponAPI.apply(couponCode.value.trim(), cart.totalPrice)
+    couponDiscount.value = res.data?.discount || 0
+    couponApplied.value = true
+    ElMessage.success(`优惠 ¥${couponDiscount.value}`)
+  } catch (e) {
+    ElMessage.error('优惠码无效')
+  }
+  couponLoading.value = false
+}
 
 async function checkout() {
   try {
-    await ordersAPI.create()
-    ElMessage.success('下单成功！')
+    const res = await ordersAPI.create({ note: '', coupon_code: couponApplied.value ? couponCode.value.trim() : null })
+    const orderId = res.data?.id || res.data?.order?.id
+    ElMessage.success('下单成功，即将跳转支付...')
     await cart.fetchCart()
-    router.push('/orders')
+    couponCode.value = ''
+    couponApplied.value = false
+    couponDiscount.value = 0
+    router.push(`/pay/${orderId}`)
   } catch (e) {
     ElMessage.error('下单失败，请重试')
   }

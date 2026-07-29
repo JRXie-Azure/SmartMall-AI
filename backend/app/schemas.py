@@ -12,7 +12,7 @@ from datetime import datetime
 class UserRegister(BaseModel):
     email: EmailStr
     username: str = Field(..., min_length=2, max_length=50)
-    password: str = Field(..., min_length=6)
+    password: str = Field(..., min_length=8)
 
 
 class UserLogin(BaseModel):
@@ -22,6 +22,7 @@ class UserLogin(BaseModel):
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: Optional[str] = None
     token_type: str = "bearer"
     user: Optional[dict] = None
 
@@ -43,6 +44,7 @@ class UserUpdate(BaseModel):
     avatar: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
+    password: Optional[str] = None
 
 
 # ====== 地址 ======
@@ -117,6 +119,41 @@ class ProductUpdate(BaseModel):
     audit_status: Optional[str] = None
 
 
+# ====== 商品 SKU ======
+
+class ProductVariantCreate(BaseModel):
+    name: str
+    options: List[str] = []
+
+class ProductVariantOut(BaseModel):
+    id: int
+    product_id: int
+    name: str
+    options: List[str] = []
+
+    class Config:
+        from_attributes = True
+
+class ProductSKUCreate(BaseModel):
+    sku_code: str
+    attributes: dict = {}
+    price: Optional[float] = None
+    stock: int = 0
+    image: str = ""
+
+class ProductSKUOut(BaseModel):
+    id: int
+    product_id: int
+    sku_code: str
+    attributes: dict = {}
+    price: Optional[float] = None
+    stock: int = 0
+    image: str = ""
+    is_active: bool = True
+
+    class Config:
+        from_attributes = True
+
 class ProductOut(BaseModel):
     id: int
     name: str
@@ -137,10 +174,11 @@ class ProductOut(BaseModel):
     is_active: bool = True
     audit_status: str = "approved"
     created_at: Optional[datetime] = None
+    skus: List[ProductSKUOut] = []
+    variants: List[ProductVariantOut] = []
 
     class Config:
         from_attributes = True
-
 
 class ProductListOut(BaseModel):
     items: List[ProductOut]
@@ -175,6 +213,7 @@ class CartItemOut(BaseModel):
 class OrderCreate(BaseModel):
     address_id: Optional[int] = None
     note: str = ""
+    coupon_code: Optional[str] = None
 
 
 class OrderStatusUpdate(BaseModel):
@@ -287,6 +326,37 @@ class ProductAudit(BaseModel):
     reason: Optional[str] = None
 
 
+class CouponCreate(BaseModel):
+    code: str
+    name: str
+    description: str = ""
+    discount_type: str = "fixed"  # fixed / percent
+    discount_value: float = Field(..., gt=0)
+    min_order_amount: float = 0
+    max_discount: Optional[float] = None
+    valid_from: Optional[datetime] = None
+    valid_until: Optional[datetime] = None
+    total_limit: int = 0
+    per_user_limit: int = 1
+    applicable_products: List[int] = []
+    applicable_categories: List[int] = []
+
+
+class CouponUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    discount_value: Optional[float] = None
+    min_order_amount: Optional[float] = None
+    max_discount: Optional[float] = None
+    valid_from: Optional[datetime] = None
+    valid_until: Optional[datetime] = None
+    total_limit: Optional[int] = None
+    per_user_limit: Optional[int] = None
+    applicable_products: Optional[List[int]] = None
+    applicable_categories: Optional[List[int]] = None
+    is_active: Optional[bool] = None
+
+
 class AdminStatsOut(BaseModel):
     total_products: int
     total_orders: int
@@ -298,3 +368,114 @@ class AdminStatsOut(BaseModel):
     category_dist: List[dict] = []  # [{"category": "运动鞋", "count": 5}, ...]
     user_growth: List[dict] = []  # [{"date": "2026-07-01", "count": 100}, ...]
     top_products: List[dict] = []  # [{"name": "xxx", "sales": 100}, ...]
+
+class MarketingCampaignCreate(BaseModel):
+    name: str
+    campaign_type: str = "discount"  # discount / flash_sale / full_reduction
+    description: str = ""
+    banner_image: str = ""
+    discount_value: float = 0
+    min_order_amount: float = 0
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    applicable_products: List[int] = []
+    applicable_categories: List[int] = []
+
+
+class MarketingCampaignUpdate(BaseModel):
+    name: Optional[str] = None
+    campaign_type: Optional[str] = None
+    description: Optional[str] = None
+    banner_image: Optional[str] = None
+    discount_value: Optional[float] = None
+    min_order_amount: Optional[float] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    applicable_products: Optional[List[int]] = None
+    applicable_categories: Optional[List[int]] = None
+    is_active: Optional[bool] = None
+
+
+class BannerCreate(BaseModel):
+    title: str = ""
+    image: str
+    link: str = ""
+    sort_order: int = 0
+
+
+class BannerUpdate(BaseModel):
+    title: Optional[str] = None
+    image: Optional[str] = None
+    link: Optional[str] = None
+    sort_order: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
+class SiteConfigItem(BaseModel):
+    config_key: str
+    config_value: str = ""
+    description: str = ""
+
+# ====== 优惠券响应 ======
+
+class CouponOut(BaseModel):
+    id: int
+    code: str
+    name: str
+    description: str = ""
+    discount_type: str = "fixed"
+    discount_value: float
+    min_order_amount: float = 0
+    max_discount: Optional[float] = None
+    valid_from: Optional[datetime] = None
+    valid_until: Optional[datetime] = None
+    total_limit: int = 0
+    used_count: int = 0
+    per_user_limit: int = 1
+    is_active: bool = True
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class PaginatedResponse(BaseModel):
+    """通用分页响应"""
+    items: List[Any]
+    total: int
+    page: int
+    page_size: int
+
+
+# ====== 营销活动响应 ======
+
+class MarketingCampaignOut(BaseModel):
+    id: int
+    name: str
+    campaign_type: str = "discount"
+    description: str = ""
+    banner_image: str = ""
+    discount_value: float = 0
+    min_order_amount: float = 0
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    is_active: bool = True
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ====== Banner 响应 ======
+
+class BannerOut(BaseModel):
+    id: int
+    title: str = ""
+    image: str
+    link: str = ""
+    sort_order: int = 0
+    is_active: bool = True
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True

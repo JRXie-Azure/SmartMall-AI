@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -35,28 +35,38 @@ a{text-decoration:none;color:inherit}
 .nav-login:hover{background:#1d4ed8}
 .nav-login.out{background:#f0f2f5;color:#606266}
 
-.hero{margin-top:64px;background:url('/static/bg.jpg') center/cover no-repeat fixed;min-height:480px;display:flex;align-items:center;padding:0 80px;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;top:-50%;right:-20%;width:700px;height:700px;background:radial-gradient(circle,rgba(37,99,235,.15) 0%,transparent 70%);border-radius:50%}
-.hero-text{flex:1;z-index:1;max-width:560px}
+.hero{margin-top:64px;background:url('/static/bg.jpg') center/cover no-repeat fixed;min-height:520px;display:flex;align-items:center;padding:0 80px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-30%;right:-10%;width:600px;height:600px;background:radial-gradient(circle,rgba(37,99,235,.15) 0%,transparent 70%);border-radius:50%;pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-20%;left:-5%;width:500px;height:500px;background:radial-gradient(circle,rgba(124,58,237,.1) 0%,transparent 70%);border-radius:50%;pointer-events:none}
+.hero-text{flex:1;z-index:1;max-width:560px;position:relative}
 .hero-text h1{font-size:64px;color:#fff;font-weight:800;line-height:1.15;margin-bottom:20px}
 .hero-text h1 span{color:#60a5fa}
 .hero-text p{font-size:20px;color:#cbd5e1;margin-bottom:36px}
 .hero-btn{background:#fff;color:#0f172a;border:none;padding:16px 42px;border-radius:28px;font-size:17px;font-weight:700;cursor:pointer;transition:all .3s}
-.hero-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.2)}
-.hero-img{flex:1;position:relative;height:420px;overflow:visible}
-.hero-float{position:absolute;border-radius:16px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.25);animation:heroFloat 4s ease-in-out infinite}
-.hero-float img{width:100%;height:100%;object-fit:cover;display:block}
-.hero-float:nth-child(1){width:160px;height:200px;top:20px;right:60px;animation-delay:0s}
-.hero-float:nth-child(2){width:140px;height:180px;top:120px;right:200px;animation-delay:.6s}
-.hero-float:nth-child(3){width:120px;height:160px;top:200px;right:20px;animation-delay:1.2s}
-@keyframes heroFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-16px) rotate(1.5deg)}}
+.hero-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(96,165,250,.4)}
+.hero-img{flex:1;position:relative;height:460px;overflow:visible;z-index:1}
+.hero-float{position:absolute;width:185px;border-radius:20px;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);box-shadow:0 8px 32px rgba(37,99,235,.25),0 2px 8px rgba(0,0,0,.1);animation:heroFloat 4s ease-in-out infinite;overflow:visible;transition:box-shadow .3s}
+.hero-float::before{content:'';position:absolute;inset:-2px;border-radius:22px;background:linear-gradient(135deg,#2563EB,#7c3aed,#60a5fa);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;padding:2px;pointer-events:none}
+.hero-float:hover{box-shadow:0 12px 40px rgba(124,58,237,.35),0 4px 12px rgba(0,0,0,.15)}
+.hero-float .hf-img{width:100%;height:165px;border-radius:18px 18px 0 0;overflow:hidden;background:#f8f9fa}
+.hero-float .hf-img img{width:100%;height:100%;object-fit:cover;display:block}
+.hero-float .hf-info{padding:10px 14px 14px}
+.hero-float .hf-name{font-size:13px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.hero-float .hf-price{font-size:22px;font-weight:800;color:#2563EB;line-height:1}
+.hero-float .hf-price small{font-size:13px;font-weight:600}
+.hero-float .hf-sales{font-size:11px;color:#94a3b8;margin-top:5px}
+.hero-float .hf-badge{position:absolute;top:-10px;left:-8px;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);color:#2563EB;font-size:11px;font-weight:700;padding:4px 12px;border-radius:12px;box-shadow:0 2px 12px rgba(37,99,235,.3);border:1px solid rgba(96,165,250,.3);z-index:2;transform:rotate(-6deg);white-space:nowrap}
+.hero-float:nth-child(1){--rot:-8deg;top:10px;right:30px;animation-delay:0s}
+.hero-float:nth-child(2){--rot:6deg;top:120px;right:200px;animation-delay:.7s}
+.hero-float:nth-child(3){--rot:-5deg;top:230px;right:15px;animation-delay:1.4s}
+@keyframes heroFloat{0%,100%{transform:translateY(0) rotate(var(--rot,0deg))}50%{transform:translateY(-14px) rotate(calc(var(--rot,0deg) + 1.5deg))}}
 
 .section{padding:48px 60px}
 .sec-hd{display:flex;align-items:center;gap:10px;margin-bottom:28px}
 .sec-hd h2{font-size:24px;font-weight:700;color:#1e293b}
 .sec-hd .tag{background:linear-gradient(135deg,#2563EB,#60a5fa);color:#fff;padding:3px 12px;border-radius:12px;font-size:12px;font-weight:600}
 
-.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
+.pg{display:grid;grid-template-columns:repeat(5,1fr);gap:20px}
 .pc{background:#fff;border-radius:14px;overflow:hidden;transition:all .3s;cursor:pointer;border:2px solid transparent;position:relative}
 .pc:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.1);border-color:#2563EB}
 .pc .iw{height:200px;background:#f0f2f5;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
@@ -75,6 +85,18 @@ a{text-decoration:none;color:inherit}
 .pc .inf .ab:hover{background:#1d4ed8;transform:scale(1.1)}
 .pc .inf .rt{font-size:12px;color:#f59e0b;margin-bottom:6px}
 .pc .inf .op{font-size:12px;color:#c0c4cc;text-decoration:line-through;margin-left:6px;font-weight:400}
+
+/* Skeleton Loading */
+.skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.sk-card{background:#fff;border-radius:14px;overflow:hidden}
+.sk-card .sk-img{height:200px}
+.sk-card .sk-line{height:14px;margin:12px 14px;border-radius:4px}
+.sk-card .sk-line.short{width:60%}
+
+/* Lazy load image */
+.pc .iw img{opacity:0;transition:opacity .3s}
+.pc .iw img.loaded{opacity:1}
 
 /* AI推荐首页 */
 .home-ai{background:url('/static/bg.jpg') center/cover no-repeat fixed;padding:48px 60px 60px}
@@ -258,19 +280,31 @@ a{text-decoration:none;color:inherit}
 .stag.sp{background:#fef3c7;color:#f59e0b}
 .stag.sd{background:#dbeafe;color:#2563EB}
 .stag.sdn{background:#d1fae5;color:#10b981}
+.stag.ss{background:#ede9fe;color:#8b5cf6}
+.stag.sc{background:#f1f5f9;color:#94a3b8}
 
 .asbx{background:linear-gradient(135deg,#eff6ff,#dbeafe);border-radius:14px;padding:20px;border:1px solid #bfdbfe}
 .asbx h3{font-size:16px;font-weight:700;color:#2563EB;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .asbx .si2{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:13px;color:#1e293b;line-height:1.6}
 .asbx .si2 i{color:#2563EB;margin-top:4px;flex-shrink:0}
 
-.arh{text-align:center;padding:40px 20px 20px;margin-top:64px;background:linear-gradient(135deg,#eff6ff,#dbeafe)}
-.arh h1{font-size:32px;font-weight:800;color:#1e293b;margin-bottom:8px}
-.arh p{font-size:16px;color:#606266}
+.arh{text-align:center;padding:48px 60px;margin-top:64px;background:linear-gradient(135deg,#0f172a,#1e293b)}
+.arh h1{font-size:32px;font-weight:800;color:#fff;margin-bottom:8px}
+.arh p{font-size:16px;color:#94a3b8}
 
 .pe{text-align:center;padding:80px 20px}
 .pe i{font-size:60px;color:#c0c4cc;margin-bottom:16px;display:block}
 .pe p{font-size:16px;color:#909399}
+
+/* ====== Pagination ====== */
+.pagination{display:flex;justify-content:center;align-items:center;gap:8px;margin:40px 0 20px;flex-wrap:wrap}
+.pg-btn{min-width:40px;height:40px;padding:0 12px;border:1px solid #e4e7ed;background:#fff;border-radius:8px;font-size:14px;color:#606266;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-weight:500}
+.pg-btn:hover:not(:disabled){border-color:#2563EB;color:#2563EB}
+.pg-btn:disabled{color:#c0c4cc;cursor:not-allowed;background:#f5f7fa}
+.pg-btn.active{background:#2563EB;border-color:#2563EB;color:#fff;font-weight:600}
+.pg-ellipsis{color:#909399;padding:0 4px;font-size:14px;user-select:none}
+.pg-total{font-size:13px;color:#909399;margin-right:12px}
+@media(max-width:768px){.pg-btn{min-width:36px;height:36px;padding:0 8px;font-size:13px}.pg-total{display:none}}
 
 .sf{background:#0f172a;color:#94a3b8;padding:48px 60px 24px}
 .ft{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:32px}
@@ -282,7 +316,7 @@ a{text-decoration:none;color:inherit}
 .ph{margin-top:64px;padding:48px 60px;background:linear-gradient(135deg,#0f172a,#1e293b);text-align:center}
 .ph h1{font-size:36px;font-weight:800;color:#fff;margin-bottom:8px}
 .ph p{font-size:16px;color:#94a3b8}
-.ph.sale{background:linear-gradient(135deg,#7c2d12,#c2410c)}
+.ph.sale{background:linear-gradient(135deg,#0f172a,#1e293b)}
 
 .cats{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 .cat-card{background:#fff;border-radius:16px;padding:32px;text-align:center;cursor:pointer;transition:all .3s;box-shadow:0 2px 8px rgba(0,0,0,.04)}
@@ -297,6 +331,20 @@ a{text-decoration:none;color:inherit}
 .loading-wrap i{font-size:32px;color:#2563EB;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-wrap p{color:#909399;margin-top:12px;font-size:14px}
+
+/* Network error banner */
+.network-error{position:fixed;top:64px;left:0;right:0;background:#fef0f0;color:#f56c6c;text-align:center;padding:8px;font-size:13px;z-index:999;border-bottom:1px solid #fde2e2;display:flex;align-items:center;justify-content:center;gap:8px}
+.network-error i{font-size:14px}
+
+/* ====== Bottom Navigation ====== */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e4e7ed;display:flex;justify-content:space-around;align-items:center;padding:6px 0 8px;z-index:998;box-shadow:0 -2px 8px rgba(0,0,0,0.06)}
+.bn-item{display:flex;flex-direction:column;align-items:center;gap:2px;color:#909399;font-size:11px;cursor:pointer;transition:color 0.2s;position:relative;text-decoration:none;padding:4px 12px}
+.bn-item i{font-size:20px}
+.bn-item:hover{color:#2563EB}
+.bn-item.active{color:#2563EB;font-weight:600}
+.bn-badge{position:absolute;top:0;right:6px;background:#ef4444;color:#fff;font-size:10px;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+@media(min-width:769px){.bottom-nav{display:none}}
+@media(max-width:768px){.ai-float{bottom:70px!important}}
 </style>
 </head>
 <body>
@@ -308,8 +356,8 @@ a{text-decoration:none;color:inherit}
       <span>SmartMall <small style="font-weight:400;font-size:14px">AI</small></span>
     </div>
     <div class="nav-search">
-      <input v-model="G.searchQuery" placeholder="搜索你想要的商品..." @keyup.enter="doSearch">
-      <i class="fas fa-star search-icon" @click="doSearch"></i>
+      <input v-model="searchInput" @input="debouncedSearch" placeholder="搜索你想要的商品..." @keyup.enter="doSearch">
+      <i class="fas fa-search search-icon" @click="doSearch"></i>
     </div>
     <div class="nav-links">
       <router-link to="/">首页</router-link>
@@ -328,6 +376,11 @@ a{text-decoration:none;color:inherit}
       <button class="nav-login out" v-else @click="G.logout()">退出</button>
     </div>
   </nav>
+  <!-- Network Error Banner -->
+  <div class="network-error" v-if="networkError">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span>网络连接异常，部分功能可能无法正常使用</span>
+  </div>
 
   <router-view v-slot="{Component}">
     <transition name="fade" mode="out-in"><component :is="Component"/></transition>
@@ -399,6 +452,35 @@ a{text-decoration:none;color:inherit}
       </div>
     </div>
   </transition>
+
+  <!-- BOTTOM NAV (Mobile-friendly) -->
+  <nav class="bottom-nav" v-if="!isAdmin">
+    <router-link to="/" class="bn-item" :class="{active: curRoute==='/'}">
+      <i class="fas fa-home"></i>
+      <span>首页</span>
+    </router-link>
+    <router-link to="/products" class="bn-item" :class="{active: curRoute==='/products'}">
+      <i class="fas fa-th-large"></i>
+      <span>商品</span>
+    </router-link>
+    <router-link to="/ai-recommend" class="bn-item" :class="{active: curRoute==='/ai-recommend'}">
+      <i class="fas fa-robot"></i>
+      <span>AI推荐</span>
+    </router-link>
+    <router-link to="/cart" class="bn-item" :class="{active: curRoute==='/cart'}">
+      <i class="fas fa-shopping-cart"></i>
+      <span>购物车</span>
+      <span class="bn-badge" v-if="G.cart.length">{{G.cartTotal}}</span>
+    </router-link>
+    <router-link to="/orders" class="bn-item" :class="{active: curRoute==='/orders'}" v-if="G.isLoggedIn">
+      <i class="fas fa-user"></i>
+      <span>我的</span>
+    </router-link>
+    <a class="bn-item" @click="G.showAuth=true" v-else>
+      <i class="fas fa-sign-in-alt"></i>
+      <span>登录</span>
+    </a>
+  </nav>
 </div>
 
 <script>
@@ -407,6 +489,7 @@ const {createRouter,createWebHashHistory} = VueRouter;
 
 /* ====== API LAYER ====== */
 let authToken = localStorage.getItem('token') || '';
+let networkError = false;
 
 async function api(path, opts = {}) {
   // 确保 token 是最新的
@@ -416,6 +499,7 @@ async function api(path, opts = {}) {
   opts.headers = {...h, ...(opts.headers||{})};
   try {
     const r = await fetch(path, opts);
+    networkError = false; // 成功请求，清除网络错误状态
     const data = await r.json().catch(() => ({}));
     if (r.status === 401) {
       // 仅在明确需要认证的写操作失败时才清除登录态
@@ -434,7 +518,8 @@ async function api(path, opts = {}) {
     return data;
   } catch(e) {
     if (e.detail) throw e;
-    throw {detail: '网络错误，请检查后端服务是否运行'};
+    networkError = true;
+    throw {detail: '网络连接失败，请检查网络或后端服务'};
   }
 }
 
@@ -493,7 +578,7 @@ let allProducts = [];
 
 async function loadAllProducts() {
   try {
-    const d = await api('/api/products?page_size=100');
+    const d = await api('/api/products?page_size=30');
     allProducts = extractList(d).map(normProduct).filter(p => p.is_active !== false);
   } catch(e) {
     allProducts = [];
@@ -506,6 +591,7 @@ const imgErr = (e) => { e.target.style.display = 'none'; };
 /* ====== GLOBAL STATE ====== */
 const G = reactive({
   isLoggedIn: !!authToken,
+  currentUser: '',
   showAuth: false,
   authMode: 'login',
   authForm: {username:'', email:'', password:''},
@@ -525,23 +611,44 @@ const G = reactive({
 /* ====== AUTH ====== */
 async function doAuth() {
   if (G.authLoading) return;
-  if (G.authMode === 'login' && !G.authForm.username) {
-    ElementPlus.ElMessage.warning('请输入用户名'); return;
+  const {username, email, password} = G.authForm;
+
+  if (G.authMode === 'login') {
+    if (!username) { ElementPlus.ElMessage.warning('请输入用户名'); return; }
+    if (!password) { ElementPlus.ElMessage.warning('请输入密码'); return; }
+  } else {
+    if (!username || !email || !password) {
+      ElementPlus.ElMessage.warning('请填写完整信息（用户名、邮箱、密码）'); return;
+    }
+    // 邮箱格式简单校验
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      ElementPlus.ElMessage.warning('请输入有效的邮箱地址'); return;
+    }
+    // 密码复杂度校验（与后端保持一致）
+    if (password.length < 8) {
+      ElementPlus.ElMessage.warning('密码长度至少8位'); return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      ElementPlus.ElMessage.warning('密码必须包含至少一个大写字母'); return;
+    }
+    if (!/[0-9]/.test(password)) {
+      ElementPlus.ElMessage.warning('密码必须包含至少一个数字'); return;
+    }
   }
-  if (G.authMode === 'register' && (!G.authForm.username || !G.authForm.password)) {
-    ElementPlus.ElMessage.warning('请填写完整信息'); return;
-  }
+
   G.authLoading = true;
   try {
     if (G.authMode === 'login') {
       const d = await api('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify({username: G.authForm.username, password: G.authForm.password})
+        body: JSON.stringify({username, password})
       });
       authToken = d.access_token || d.token;
       if (!authToken) throw {detail: '登录响应异常'};
       localStorage.setItem('token', authToken);
+      localStorage.setItem('username', G.authForm.username);
       G.isLoggedIn = true;
+      G.currentUser = G.authForm.username;
       G.showAuth = false;
       G.authForm = {username:'', email:'', password:''};
       ElementPlus.ElMessage.success('登录成功');
@@ -550,12 +657,13 @@ async function doAuth() {
     } else {
       const d = await api('/api/auth/register', {
         method: 'POST',
-        body: JSON.stringify({username: G.authForm.username, email: G.authForm.email, password: G.authForm.password})
+        body: JSON.stringify({username, email, password})
       });
       authToken = d.access_token || d.token;
       if (authToken) {
         localStorage.setItem('token', authToken);
         G.isLoggedIn = true;
+        G.currentUser = G.authForm.username;
       }
       G.showAuth = false;
       G.authForm = {username:'', email:'', password:''};
@@ -574,6 +682,7 @@ function logout() {
   authToken = '';
   localStorage.removeItem('token');
   G.isLoggedIn = false;
+  G.currentUser = '';
   G.cart = [];
   ElementPlus.ElMessage.info('已退出登录');
 }
@@ -626,7 +735,7 @@ async function removeCart(cartItemId) {
 async function submitOrder() {
   if (!G.cart.length) { ElementPlus.ElMessage.warning('购物车为空'); return; }
   try {
-    const result = await api('/api/orders', {method: 'POST'});
+    const result = await api('/api/orders', {method: 'POST', body: JSON.stringify({})});
     G.cart = [];
     ElementPlus.ElMessage.success('下单成功！');
     return result;
@@ -686,20 +795,37 @@ const HomePage = {template:`
       <button class="hero-btn" @click="$router.push('/products')">立即探索</button>
     </div>
     <div class="hero-img">
-      <a v-for="(p,i) in heroItems" :key="p.id" :href="'#/product/'+p.id" class="hero-float" :style="{transform:heroRots[i]}">
-        <img :src="p.image" @error="imgErr">
+      <a v-for="(p,i) in heroItems" :key="p.id" :href="'#/product/'+p.id" class="hero-float">
+        <span class="hf-badge">AI推荐</span>
+        <div class="hf-img"><img :src="p.image" @error="imgErr" loading="lazy"></div>
+        <div class="hf-info">
+          <div class="hf-name">{{p.name}}</div>
+          <div class="hf-price"><small>¥</small>{{p.price}}</div>
+          <div class="hf-sales">销量：{{p.sales >= 10000 ? (p.sales/10000).toFixed(1) + '万+' : p.sales + '+'}}</div>
+        </div>
       </a>
     </div>
   </div>
   <div class="home-ai">
     <div class="sec-hd"><span class="tag">AI</span><h2>✨ AI 为你推荐</h2><p class="ai-sub">基于你的喜好，智能精选</p></div>
-    <div v-if="loading" class="loading-wrap"><i class="fas fa-spinner"></i><p>加载推荐商品中...</p></div>
+    <template v-if="loading">
+      <div class="ai-row" v-for="i in 3" :key="i">
+        <div class="ai-row-title" style="background:#e4e7ed;height:20px;width:120px;border-radius:4px" class="skeleton"></div>
+        <div class="ai-scroll">
+          <div class="sk-card" v-for="j in 4" :key="j">
+            <div class="sk-img skeleton"></div>
+            <div class="sk-line skeleton"></div>
+            <div class="sk-line short skeleton"></div>
+          </div>
+        </div>
+      </div>
+    </template>
     <template v-else>
       <div class="ai-row" v-for="(row,ri) in aiRows" :key="ri">
         <div class="ai-row-title">{{row.title}}</div>
         <div class="ai-scroll">
           <div class="pc" v-for="p in row.items" :key="p.id" @click="$router.push('/product/'+p.id)">
-            <div class="iw"><img :src="p.image" @error="imgErr"><span class="badge">AI推荐</span></div>
+            <div class="iw"><img :src="p.image" @error="imgErr" loading="lazy" loading="lazy" @load="$event.target.classList.add('loaded')"><span class="badge">AI推荐</span></div>
             <div class="inf"><div class="nm">{{p.name}}</div><div class="br">{{p.brand}}</div>
               <div class="bt"><div class="pr"><small>¥</small>{{p.price}}</div><button class="ab" @click.stop="G.addToCart(p)"><i class="fas fa-plus"></i></button></div>
             </div>
@@ -715,16 +841,18 @@ const HomePage = {template:`
       <div><h4>客户服务</h4><a>帮助中心</a><a>退换货政策</a><a>配送说明</a><a>联系我们</a></div>
       <div><h4>关注我们</h4><a>微信公众号</a><a>微博</a><a>抖音</a><a>小红书</a></div>
     </div>
-    <div class="fb">© 2024 SmartMall AI. All rights reserved.</div>
+    <div class="fb">© 2026 SmartMall AI. All rights reserved.</div>
   </div>
 </div>`,
 setup() {
   const aiRows = ref([]);
   const heroItems = ref([]);
   const loading = ref(true);
-  const heroRots = ['rotate(-6deg)', 'rotate(4deg)', 'rotate(-3deg)'];
+  // 旋转角度已通过CSS变量 --rot 设置
 
-  onMounted(() => {
+  onMounted(async () => {
+    // 确保商品数据已加载完成，避免竞态条件导致heroItems和aiRows为空
+    if (allProducts.length === 0) { await loadAllProducts(); }
     const rec = allProducts.filter(p => p.isRecommend);
     const shuffled = [...allProducts].sort(() => Math.random() - 0.5);
     aiRows.value = [
@@ -732,13 +860,14 @@ setup() {
       {title: '👟 潮流穿搭', items: shuffled.slice(0, 4).filter(p => !rec.includes(p)).concat(rec.slice(4, 8)).slice(0, 4)},
       {title: '💎 品质精选', items: shuffled.slice(4, 8)}
     ];
-    // pick 3 products with images for hero
+    // pick 3 recommended products with images for hero
+    const recWithImg = allProducts.filter(p => p.isRecommend && p.image);
     const withImg = allProducts.filter(p => p.image);
-    heroItems.value = withImg.length >= 3 ? [withImg[0], withImg[1], withImg[2]] : withImg;
+    heroItems.value = recWithImg.length >= 3 ? recWithImg.slice(0, 3) : (withImg.length >= 3 ? withImg.slice(0, 3) : withImg);
     loading.value = false;
   });
 
-  return {aiRows, heroItems, heroRots, loading, imgErr, G};
+  return {aiRows, heroItems, loading, imgErr, G};
 }};
 
 // PRODUCTS
@@ -757,10 +886,16 @@ const ProductsPage = {template:`
       <div :class="['si',{on:curSort==='ai'}]" @click="curSort='ai'">AI推荐优先</div>
       <button class="afb" @click="ElementPlus.ElMessage.info('AI正在为您智能筛选...')"><i class="fas fa-magic"></i> AI智能筛选</button>
     </div>
-    <div v-if="loading" class="loading-wrap"><i class="fas fa-spinner"></i><p>加载商品中...</p></div>
+    <div v-if="loading" class="pg">
+      <div class="sk-card" v-for="i in 8" :key="i">
+        <div class="sk-img skeleton"></div>
+        <div class="sk-line skeleton"></div>
+        <div class="sk-line short skeleton"></div>
+      </div>
+    </div>
     <div class="pg" v-else>
-      <div class="pc" v-for="p in filtered" :key="p.id" @click="$router.push('/product/'+p.id)">
-        <div class="iw"><img :src="p.image" @error="imgErr">
+      <div class="pc" v-for="p in pagedProducts" :key="p.id" @click="$router.push('/product/'+p.id)">
+        <div class="iw"><img :src="p.image" @error="imgErr" loading="lazy" loading="lazy" @load="$event.target.classList.add('loaded')">
           <span v-if="p.isRecommend" class="badge">AI推荐</span>
           <span v-if="p.isNew" class="badge bnw" style="left:auto;right:10px">新品</span>
           <span v-if="p.isSale && !p.isNew" class="badge bsl" style="left:auto;right:10px">特惠</span>
@@ -772,6 +907,17 @@ const ProductsPage = {template:`
       </div>
     </div>
     <div v-if="!loading && !filtered.length" class="pe"><i class="fas fa-search"></i><p>没有找到相关商品</p></div>
+    <div v-if="!loading && filtered.length > pageSize" class="pagination">
+      <span class="pg-total">共 {{filtered.length}} 件 / {{totalPages}} 页</span>
+      <button class="pg-btn nav" @click="goPage(1)" :disabled="curPage===1"><i class="fas fa-angle-double-left"></i></button>
+      <button class="pg-btn nav" @click="goPage(curPage-1)" :disabled="curPage===1"><i class="fas fa-angle-left"></i></button>
+      <template v-for="(p,i) in pageList" :key="i">
+        <span v-if="p==='...'" class="pg-ellipsis">...</span>
+        <button v-else class="pg-btn" :class="{active:curPage===p}" @click="goPage(p)">{{p}}</button>
+      </template>
+      <button class="pg-btn nav" @click="goPage(curPage+1)" :disabled="curPage===totalPages"><i class="fas fa-angle-right"></i></button>
+      <button class="pg-btn nav" @click="goPage(totalPages)" :disabled="curPage===totalPages"><i class="fas fa-angle-double-right"></i></button>
+    </div>
   </div>
 </div>`,
 setup() {
@@ -784,7 +930,7 @@ setup() {
   async function loadData() {
     loading.value = true;
     try {
-      let url = '/api/products?page_size=100';
+      let url = '/api/products?page_size=500';
       if (curCat.value !== '全部') {
         const cat = catListData.find(c => c.name === curCat.value);
         if (cat) url += '&category_id=' + cat.id;
@@ -796,6 +942,9 @@ setup() {
     }
     loading.value = false;
   }
+
+  const pageSize = 20;
+  const curPage = ref(1);
 
   const filtered = computed(() => {
     let l = [...products.value];
@@ -809,10 +958,34 @@ setup() {
     return l;
   });
 
-  watch(curCat, loadData);
+  const totalPages = computed(() => Math.max(1, Math.ceil(filtered.value.length / pageSize)));
+  const pagedProducts = computed(() => {
+    const start = (curPage.value - 1) * pageSize;
+    return filtered.value.slice(start, start + pageSize);
+  });
+  const pageList = computed(() => {
+    const tp = totalPages.value, cp = curPage.value, arr = [];
+    if (tp <= 7) { for (let i=1;i<=tp;i++) arr.push(i); return arr; }
+    arr.push(1);
+    if (cp > 4) arr.push('...');
+    const s = Math.max(2, cp-1), e = Math.min(tp-1, cp+1);
+    for (let i=s;i<=e;i++) arr.push(i);
+    if (cp < tp-3) arr.push('...');
+    arr.push(tp);
+    return arr;
+  });
+  function goPage(p) {
+    if (p < 1 || p > totalPages.value || p === curPage.value) return;
+    curPage.value = p;
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  watch(curCat, () => { curPage.value = 1; loadData(); });
+  watch(curSort, () => { curPage.value = 1; });
+  watch(() => G.searchQuery, () => { curPage.value = 1; });
   onMounted(loadData);
 
-  return {curCat, curSort, catNames, filtered, loading, imgErr, G, ElementPlus};
+  return {curCat, curSort, catNames, filtered, pagedProducts, totalPages, pageList, curPage, pageSize, goPage, loading, imgErr, G, ElementPlus};
 }};
 
 // PRODUCT DETAIL
@@ -848,11 +1021,7 @@ setup() {
   const sizes = ['38','39','40','41','42','43','44'];
   const colors = ['黑色','白色','蓝色','红色'];
   const ssz = ref('42'), sco = ref('黑色'), qty = ref(1);
-  const reviews = [
-    {n:'用户A***8', s:5, t:'鞋子非常舒适，包裹性很好，跑步的时候缓震效果明显！'},
-    {n:'运***人', s:5, t:'颜值很高，配色好看，已经回购第二双了。'},
-    {n:'小***子', s:4, t:'整体不错，就是码数偏小半码，建议买大一号。'}
-  ];
+  const reviews = ref([]);
 
   async function loadDetail() {
     detailLoading.value = true;
@@ -864,6 +1033,15 @@ setup() {
       product.value = allProducts.find(p => p.id === Number(route.params.id)) || null;
     }
     detailLoading.value = false;
+    // 加载真实评价
+    try {
+      const rdata = await api('/api/products/' + route.params.id + '/reviews');
+      reviews.value = (rdata || []).map(r => ({
+        n: r.is_anonymous ? '匿名用户' : (r.username || '用户'),
+        s: r.rating,
+        t: r.content,
+      }));
+    } catch(e) { reviews.value = []; }
   }
 
   const addCart = () => { G.addToCart(product.value, qty.value); };
@@ -880,16 +1058,33 @@ const AIRecPage = {template:`
 <div>
   <div class="arh"><h1>🤖 AI 为你推荐</h1><p>基于你的浏览和购买偏好，智能推荐以下商品</p></div>
   <div class="section">
-    <div v-if="loading" class="loading-wrap"><i class="fas fa-spinner"></i><p>AI正在分析你的偏好...</p></div>
+    <div v-if="loading" class="pg">
+      <div class="sk-card" v-for="i in 8" :key="i">
+        <div class="sk-img skeleton"></div>
+        <div class="sk-line skeleton"></div>
+        <div class="sk-line short skeleton"></div>
+      </div>
+    </div>
     <div class="pg" v-else>
-      <div class="pc" v-for="p in list" :key="p.id" @click="$router.push('/product/'+p.id)">
-        <div class="iw"><img :src="p.image" @error="imgErr"><span class="badge">AI推荐</span></div>
+      <div class="pc" v-for="p in pagedList" :key="p.id" @click="$router.push('/product/'+p.id)">
+        <div class="iw"><img :src="p.image" @error="imgErr" loading="lazy" loading="lazy" @load="$event.target.classList.add('loaded')"><span class="badge">AI推荐</span></div>
         <div class="inf"><div class="nm">{{p.name}}</div><div class="br">{{p.brand}}</div>
           <div class="bt"><div class="pr"><small>¥</small>{{p.price}}</div><button class="ab" @click.stop="G.addToCart(p)"><i class="fas fa-plus"></i></button></div>
         </div>
       </div>
     </div>
     <div v-if="!loading && !list.length" class="pe"><i class="fas fa-robot"></i><p>暂无推荐商品</p></div>
+    <div v-if="!loading && list.length > pageSize" class="pagination">
+      <span class="pg-total">共 {{list.length}} 件 / {{totalPages}} 页</span>
+      <button class="pg-btn nav" @click="goPage(1)" :disabled="curPage===1"><i class="fas fa-angle-double-left"></i></button>
+      <button class="pg-btn nav" @click="goPage(curPage-1)" :disabled="curPage===1"><i class="fas fa-angle-left"></i></button>
+      <template v-for="(p,i) in pageList" :key="i">
+        <span v-if="p==='...'" class="pg-ellipsis">...</span>
+        <button v-else class="pg-btn" :class="{active:curPage===p}" @click="goPage(p)">{{p}}</button>
+      </template>
+      <button class="pg-btn nav" @click="goPage(curPage+1)" :disabled="curPage===totalPages"><i class="fas fa-angle-right"></i></button>
+      <button class="pg-btn nav" @click="goPage(totalPages)" :disabled="curPage===totalPages"><i class="fas fa-angle-double-right"></i></button>
+    </div>
   </div>
 </div>`,
 setup() {
@@ -907,7 +1102,31 @@ setup() {
     loading.value = false;
   });
 
-  return {list, loading, imgErr, G};
+  const pageSize = 20;
+  const curPage = ref(1);
+  const totalPages = computed(() => Math.max(1, Math.ceil(list.value.length / pageSize)));
+  const pagedList = computed(() => {
+    const start = (curPage.value - 1) * pageSize;
+    return list.value.slice(start, start + pageSize);
+  });
+  const pageList = computed(() => {
+    const tp = totalPages.value, cp = curPage.value, arr = [];
+    if (tp <= 7) { for (let i=1;i<=tp;i++) arr.push(i); return arr; }
+    arr.push(1);
+    if (cp > 4) arr.push('...');
+    const s = Math.max(2, cp-1), e = Math.min(tp-1, cp+1);
+    for (let i=s;i<=e;i++) arr.push(i);
+    if (cp < tp-3) arr.push('...');
+    arr.push(tp);
+    return arr;
+  });
+  function goPage(p) {
+    if (p < 1 || p > totalPages.value || p === curPage.value) return;
+    curPage.value = p;
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  return {list, pagedList, totalPages, pageList, curPage, pageSize, goPage, loading, imgErr, G};
 }};
 
 // NEW
@@ -915,16 +1134,33 @@ const NewPage = {template:`
 <div>
   <div class="ph"><h1>🆕 新品上市</h1><p>第一时间发现最新潮流</p></div>
   <div class="section">
-    <div v-if="loading" class="loading-wrap"><i class="fas fa-spinner"></i><p>加载新品中...</p></div>
+    <div v-if="loading" class="pg">
+      <div class="sk-card" v-for="i in 8" :key="i">
+        <div class="sk-img skeleton"></div>
+        <div class="sk-line skeleton"></div>
+        <div class="sk-line short skeleton"></div>
+      </div>
+    </div>
     <div class="pg" v-else>
-      <div class="pc" v-for="p in list" :key="p.id" @click="$router.push('/product/'+p.id)">
-        <div class="iw"><img :src="p.image" @error="imgErr"><span class="badge bnw">新品</span></div>
+      <div class="pc" v-for="p in pagedList" :key="p.id" @click="$router.push('/product/'+p.id)">
+        <div class="iw"><img :src="p.image" @error="imgErr" loading="lazy" loading="lazy" @load="$event.target.classList.add('loaded')"><span class="badge bnw">新品</span></div>
         <div class="inf"><div class="nm">{{p.name}}</div><div class="br">{{p.brand}}</div>
           <div class="bt"><div class="pr"><small>¥</small>{{p.price}}</div><button class="ab" @click.stop="G.addToCart(p)"><i class="fas fa-plus"></i></button></div>
         </div>
       </div>
     </div>
     <div v-if="!loading && !list.length" class="pe"><i class="fas fa-box-open"></i><p>暂无新品</p></div>
+    <div v-if="!loading && list.length > pageSize" class="pagination">
+      <span class="pg-total">共 {{list.length}} 件 / {{totalPages}} 页</span>
+      <button class="pg-btn nav" @click="goPage(1)" :disabled="curPage===1"><i class="fas fa-angle-double-left"></i></button>
+      <button class="pg-btn nav" @click="goPage(curPage-1)" :disabled="curPage===1"><i class="fas fa-angle-left"></i></button>
+      <template v-for="(p,i) in pageList" :key="i">
+        <span v-if="p==='...'" class="pg-ellipsis">...</span>
+        <button v-else class="pg-btn" :class="{active:curPage===p}" @click="goPage(p)">{{p}}</button>
+      </template>
+      <button class="pg-btn nav" @click="goPage(curPage+1)" :disabled="curPage===totalPages"><i class="fas fa-angle-right"></i></button>
+      <button class="pg-btn nav" @click="goPage(totalPages)" :disabled="curPage===totalPages"><i class="fas fa-angle-double-right"></i></button>
+    </div>
   </div>
 </div>`,
 setup() {
@@ -933,16 +1169,40 @@ setup() {
 
   onMounted(async () => {
     try {
-      const d = await api('/api/products?page_size=100');
-      const items = extractList(d).map(normProduct);
-      list.value = items.filter(p => p.isNew);
+      const d = await api('/api/products?page_size=500&sort=newest');
+      const items = extractList(d).map(normProduct).filter(p => p.isNew);
+      list.value = items;
     } catch(e) {
       list.value = allProducts.filter(p => p.isNew);
     }
     loading.value = false;
   });
 
-  return {list, loading, imgErr, G};
+  const pageSize = 20;
+  const curPage = ref(1);
+  const totalPages = computed(() => Math.max(1, Math.ceil(list.value.length / pageSize)));
+  const pagedList = computed(() => {
+    const start = (curPage.value - 1) * pageSize;
+    return list.value.slice(start, start + pageSize);
+  });
+  const pageList = computed(() => {
+    const tp = totalPages.value, cp = curPage.value, arr = [];
+    if (tp <= 7) { for (let i=1;i<=tp;i++) arr.push(i); return arr; }
+    arr.push(1);
+    if (cp > 4) arr.push('...');
+    const s = Math.max(2, cp-1), e = Math.min(tp-1, cp+1);
+    for (let i=s;i<=e;i++) arr.push(i);
+    if (cp < tp-3) arr.push('...');
+    arr.push(tp);
+    return arr;
+  });
+  function goPage(p) {
+    if (p < 1 || p > totalPages.value || p === curPage.value) return;
+    curPage.value = p;
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  return {list, pagedList, totalPages, pageList, curPage, pageSize, goPage, loading, imgErr, G};
 }};
 
 // SALE
@@ -950,16 +1210,33 @@ const SalePage = {template:`
 <div>
   <div class="ph sale"><h1>⏰ 限时特惠</h1><p>限时折扣，手慢无！</p></div>
   <div class="section">
-    <div v-if="loading" class="loading-wrap"><i class="fas fa-spinner"></i><p>加载特惠商品...</p></div>
+    <div v-if="loading" class="pg">
+      <div class="sk-card" v-for="i in 8" :key="i">
+        <div class="sk-img skeleton"></div>
+        <div class="sk-line skeleton"></div>
+        <div class="sk-line short skeleton"></div>
+      </div>
+    </div>
     <div class="pg" v-else>
-      <div class="pc" v-for="p in list" :key="p.id" @click="$router.push('/product/'+p.id)">
-        <div class="iw"><img :src="p.image" @error="imgErr"><span class="badge bsl">特惠 -{{Math.round((1-p.price/p.originalPrice)*100)}}%</span></div>
+      <div class="pc" v-for="p in pagedList" :key="p.id" @click="$router.push('/product/'+p.id)">
+        <div class="iw"><img :src="p.image" @error="imgErr" loading="lazy" loading="lazy" @load="$event.target.classList.add('loaded')"><span class="badge bsl">特惠 -{{Math.round((1-p.price/p.originalPrice)*100)}}%</span></div>
         <div class="inf"><div class="nm">{{p.name}}</div><div class="br">{{p.brand}}</div>
           <div class="bt"><div class="pr"><small>¥</small>{{p.price}}<span class="op">¥{{p.originalPrice}}</span></div><button class="ab" @click.stop="G.addToCart(p)"><i class="fas fa-plus"></i></button></div>
         </div>
       </div>
     </div>
     <div v-if="!loading && !list.length" class="pe"><i class="fas fa-tags"></i><p>暂无特惠商品</p></div>
+    <div v-if="!loading && list.length > pageSize" class="pagination">
+      <span class="pg-total">共 {{list.length}} 件 / {{totalPages}} 页</span>
+      <button class="pg-btn nav" @click="goPage(1)" :disabled="curPage===1"><i class="fas fa-angle-double-left"></i></button>
+      <button class="pg-btn nav" @click="goPage(curPage-1)" :disabled="curPage===1"><i class="fas fa-angle-left"></i></button>
+      <template v-for="(p,i) in pageList" :key="i">
+        <span v-if="p==='...'" class="pg-ellipsis">...</span>
+        <button v-else class="pg-btn" :class="{active:curPage===p}" @click="goPage(p)">{{p}}</button>
+      </template>
+      <button class="pg-btn nav" @click="goPage(curPage+1)" :disabled="curPage===totalPages"><i class="fas fa-angle-right"></i></button>
+      <button class="pg-btn nav" @click="goPage(totalPages)" :disabled="curPage===totalPages"><i class="fas fa-angle-double-right"></i></button>
+    </div>
   </div>
 </div>`,
 setup() {
@@ -968,16 +1245,40 @@ setup() {
 
   onMounted(async () => {
     try {
-      const d = await api('/api/products?page_size=100');
-      const items = extractList(d).map(normProduct);
-      list.value = items.filter(p => p.isSale);
+      const d = await api('/api/products?page_size=500&sort=sales');
+      const items = extractList(d).map(normProduct).filter(p => p.isSale);
+      list.value = items;
     } catch(e) {
       list.value = allProducts.filter(p => p.isSale);
     }
     loading.value = false;
   });
 
-  return {list, loading, imgErr, G};
+  const pageSize = 20;
+  const curPage = ref(1);
+  const totalPages = computed(() => Math.max(1, Math.ceil(list.value.length / pageSize)));
+  const pagedList = computed(() => {
+    const start = (curPage.value - 1) * pageSize;
+    return list.value.slice(start, start + pageSize);
+  });
+  const pageList = computed(() => {
+    const tp = totalPages.value, cp = curPage.value, arr = [];
+    if (tp <= 7) { for (let i=1;i<=tp;i++) arr.push(i); return arr; }
+    arr.push(1);
+    if (cp > 4) arr.push('...');
+    const s = Math.max(2, cp-1), e = Math.min(tp-1, cp+1);
+    for (let i=s;i<=e;i++) arr.push(i);
+    if (cp < tp-3) arr.push('...');
+    arr.push(tp);
+    return arr;
+  });
+  function goPage(p) {
+    if (p < 1 || p > totalPages.value || p === curPage.value) return;
+    curPage.value = p;
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  return {list, pagedList, totalPages, pageList, curPage, pageSize, goPage, loading, imgErr, G};
 }};
 
 // CART
@@ -1099,91 +1400,623 @@ const AdminPage = {template:`
     </div>
   </div>
   <div class="amn">
+    <!-- 权限检查提示 -->
+    <div v-if="authChecked && !isAdmin" style="position:fixed;inset:0;background:rgba(255,255,255,.95);z-index:3000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px">
+      <div style="width:80px;height:80px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;color:#ef4444;font-size:36px"><i class="fas fa-lock"></i></div>
+      <h2 style="margin:0;color:#1f2937">需要管理员权限</h2>
+      <p style="color:#6b7280;margin:0">当前账号（{{G.currentUser || '未知'}}）不是管理员，无法访问后台管理功能</p>
+      <div style="display:flex;gap:12px">
+        <button class="nav-login out" @click="G.logout()">退出当前账号</button>
+        <button class="nav-login" @click="G.showAuth=true">重新登录</button>
+      </div>
+    </div>
     <div class="atb">
-      <input class="ts" placeholder="搜索...">
+      <input class="ts" placeholder="搜索..." v-model="searchKey" @keyup.enter="doSearch">
       <div class="tt">电商后台管理系统</div>
-      <div class="tr"><div class="bell"><i class="fas fa-bell"></i><div class="dot"></div></div><div class="tav"><i class="fas fa-user"></i></div><span style="font-size:13px;color:#606266">管理员</span></div>
+      <div class="tr">
+        <div class="bell"><i class="fas fa-bell"></i><div class="dot"></div></div>
+        <template v-if="G.isLoggedIn">
+          <div class="tav"><i class="fas fa-user"></i></div>
+          <span style="font-size:13px;color:#606266">{{G.currentUser}}</span>
+          <button class="nav-login out" style="margin-left:8px" @click="G.logout()">退出</button>
+        </template>
+        <template v-else>
+          <span style="font-size:13px;color:#f56c6c">未登录</span>
+          <button class="nav-login" style="margin-left:8px" @click="G.showAuth=true">登录</button>
+        </template>
+      </div>
     </div>
     <div class="ac">
-      <div class="sc">
-        <div class="scd"><div class="sci blue"><i class="fas fa-yen-sign"></i></div><div class="scv">¥{{stats.revenue || '128,560'}}</div><div class="scl">今日销售额</div><div class="sch up"><i class="fas fa-arrow-up"></i> 12.5% 较昨日</div></div>
-        <div class="scd"><div class="sci green"><i class="fas fa-shopping-bag"></i></div><div class="scv">{{stats.orders || '356'}}</div><div class="scl">今日订单量</div><div class="sch up"><i class="fas fa-arrow-up"></i> 8.3% 较昨日</div></div>
-        <div class="scd"><div class="sci orange"><i class="fas fa-users"></i></div><div class="scv">{{stats.users || '12,893'}}</div><div class="scl">活跃用户</div><div class="sch up"><i class="fas fa-arrow-up"></i> 5.2% 较昨日</div></div>
-        <div class="scd"><div class="sci purple"><i class="fas fa-brain"></i></div><div class="scv">{{stats.ai_rate || '23.5%'}}%</div><div class="scl">AI推荐转化率</div><div class="sch up"><i class="fas fa-arrow-up"></i> 3.1% 较昨日</div></div>
-      </div>
-      <div class="cr">
-        <div class="cb"><h3>近7天销售趋势</h3><div class="cha" ref="lc"></div></div>
-        <div class="cb"><h3>AI推荐效果分析</h3><div class="cha" ref="pc"></div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
-        <div class="atbx"><h3>最近订单</h3>
-          <table class="atb2"><thead><tr><th>订单号</th><th>用户</th><th>商品</th><th>金额</th><th>状态</th></tr></thead>
-            <tbody><tr v-for="o in aOrders" :key="o.id"><td>#{{o.id}}</td><td>{{o.u}}</td><td>{{o.p}}</td><td style="font-weight:700">¥{{o.a}}</td><td><span :class="['stag','s'+o.sc]">{{o.st}}</span></td></tr></tbody>
+      <!-- DASHBOARD -->
+      <template v-if="menu==='dash'">
+        <div class="sc">
+          <div class="scd"><div class="sci blue"><i class="fas fa-yen-sign"></i></div><div class="scv">¥{{fmtNum(stats.revenue)}}</div><div class="scl">总销售额</div><div class="sch"><i class="fas fa-chart-line"></i> {{stats.days || 30}}天统计</div></div>
+          <div class="scd"><div class="sci green"><i class="fas fa-shopping-bag"></i></div><div class="scv">{{fmtNum(stats.orders)}}</div><div class="scl">总订单量</div><div class="sch"><i class="fas fa-chart-line"></i> {{stats.pending || 0}} 笔待处理</div></div>
+          <div class="scd"><div class="sci orange"><i class="fas fa-users"></i></div><div class="scv">{{fmtNum(stats.users)}}</div><div class="scl">注册用户</div><div class="sch"><i class="fas fa-chart-line"></i> {{stats.products || 0}} 个商品</div></div>
+          <div class="scd"><div class="sci purple"><i class="fas fa-brain"></i></div><div class="scv">{{stats.ai_rate || 0}}%</div><div class="scl">AI推荐转化率</div><div class="sch"><i class="fas fa-chart-line"></i> AI驱动销售</div></div>
+        </div>
+        <div class="cr">
+          <div class="cb"><h3>销售趋势 ({{stats.days || 30}}天)</h3><div class="cha" ref="lc"></div></div>
+          <div class="cb"><h3>订单状态分布</h3><div class="cha" ref="pc"></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
+          <div class="atbx"><h3>最近订单</h3>
+            <table class="atb2"><thead><tr><th>订单号</th><th>用户</th><th>商品</th><th>金额</th><th>状态</th></tr></thead>
+              <tbody><tr v-for="o in aOrders" :key="o.id"><td>#{{o.id}}</td><td>{{o.u}}</td><td>{{o.p}}</td><td style="font-weight:700">¥{{o.a}}</td><td><span :class="['stag','s'+o.sc]">{{o.st}}</span></td></tr></tbody>
+            </table>
+          </div>
+          <div class="asbx"><h3><i class="fas fa-brain"></i> 热销商品 TOP5</h3>
+            <div class="si2" v-for="(tp, i) in topProducts" :key="i"><i class="fas fa-trophy" :style="{color:['#f59e0b','#94a3b8','#cd7f32','#cbd5e1','#cbd5e1'][i]}"></i><span>{{tp.name}} — 销量 {{tp.sales}} 件</span></div>
+          </div>
+        </div>
+      </template>
+
+      <!-- PRODUCT MANAGEMENT -->
+      <template v-if="menu==='prod'">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="margin:0">商品管理 ({{prodTotal}})</h3>
+          <button class="hero-btn" @click="openProdForm()" style="padding:8px 20px;font-size:13px"><i class="fas fa-plus"></i> 新增商品</button>
+        </div>
+        <div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+          <table class="atb2">
+            <thead><tr><th>ID</th><th>图片</th><th>名称</th><th>品牌</th><th>分类</th><th>价格</th><th>库存</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr v-for="p in prodList" :key="p.id">
+                <td>{{p.id}}</td>
+                <td><img :src="p.image" style="width:48px;height:48px;object-fit:cover;border-radius:6px" @error="imgErr"></td>
+                <td>{{p.name}}</td>
+                <td>{{p.brand}}</td>
+                <td>{{p.category?.name || p.category_id}}</td>
+                <td style="font-weight:700">¥{{p.price}}</td>
+                <td>{{p.stock}}</td>
+                <td><span :class="['stag', p.is_active?'sdn':'sc']">{{p.is_active?'上架':'下架'}}</span></td>
+                <td>
+                  <button class="pg-btn" style="padding:4px 10px;font-size:12px" @click="openProdForm(p)"><i class="fas fa-edit"></i></button>
+                  <button class="pg-btn" style="padding:4px 10px;font-size:12px;margin-left:4px;color:#ef4444" @click="delProd(p.id)"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+            </tbody>
           </table>
+          <div v-if="!prodList.length" class="pe" style="padding:40px"><i class="fas fa-box" style="font-size:32px"></i><p>暂无商品</p></div>
+          <div v-if="prodTotal>prodPageSize" class="pagination" style="margin-top:16px">
+            <button class="pg-btn nav" @click="prodPage--" :disabled="prodPage===1"><i class="fas fa-angle-left"></i></button>
+            <span style="padding:6px 12px">{{prodPage}} / {{Math.ceil(prodTotal/prodPageSize)}}</span>
+            <button class="pg-btn nav" @click="prodPage++" :disabled="prodPage>=Math.ceil(prodTotal/prodPageSize)"><i class="fas fa-angle-right"></i></button>
+          </div>
         </div>
-        <div class="asbx"><h3><i class="fas fa-brain"></i> AI运营建议</h3>
-          <div class="si2"><i class="fas fa-lightbulb"></i><span>运动鞋品类本周销量增长23%，建议加大Nike、Adidas库存备货。</span></div>
-          <div class="si2"><i class="fas fa-lightbulb"></i><span>AI推荐转化率提升了3.1%，建议优化首页推荐算法权重。</span></div>
-          <div class="si2"><i class="fas fa-lightbulb"></i><span>用户"小张"连续3天浏览跑鞋，建议推送个性化优惠券。</span></div>
-          <div class="si2"><i class="fas fa-lightbulb"></i><span>限时特惠活动即将到期，建议延长New Balance 574促销。</span></div>
+      </template>
+
+      <!-- ORDER MANAGEMENT -->
+      <template v-if="menu==='ord'">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="margin:0">订单管理 ({{ordTotal}})</h3>
         </div>
+        <div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+          <table class="atb2">
+            <thead><tr><th>订单号</th><th>用户</th><th>金额</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr v-for="o in ordList" :key="o.id">
+                <td>#{{o.order_no || o.id}}</td>
+                <td>{{o.username || '用户'+o.user_id}}</td>
+                <td style="font-weight:700">¥{{o.total_amount}}</td>
+                <td><span :class="['stag','s'+((stMap[o.status]||{}).sc||'p')]">{{(stMap[o.status]||{}).st||o.status}}</span></td>
+                <td>{{o.created_at ? new Date(o.created_at).toLocaleString() : '-'}}</td>
+                <td>
+                  <select v-model="o._newStatus" @change="updOrdStatus(o)" style="padding:4px 8px;border-radius:4px;border:1px solid #d1d5db;font-size:12px">
+                    <option value="">修改状态</option>
+                    <option value="paid">已支付</option>
+                    <option value="shipped">已发货</option>
+                    <option value="completed">已完成</option>
+                    <option value="cancelled">已取消</option>
+                    <option value="refunded">已退款</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-if="!ordList.length" class="pe" style="padding:40px"><i class="fas fa-shopping-bag" style="font-size:32px"></i><p>暂无订单</p></div>
+          <div v-if="ordTotal>ordPageSize" class="pagination" style="margin-top:16px">
+            <button class="pg-btn nav" @click="ordPage--" :disabled="ordPage===1"><i class="fas fa-angle-left"></i></button>
+            <span style="padding:6px 12px">{{ordPage}} / {{Math.ceil(ordTotal/ordPageSize)}}</span>
+            <button class="pg-btn nav" @click="ordPage++" :disabled="ordPage>=Math.ceil(ordTotal/ordPageSize)"><i class="fas fa-angle-right"></i></button>
+          </div>
+        </div>
+      </template>
+
+      <!-- USER MANAGEMENT -->
+      <template v-if="menu==='usr'">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="margin:0">用户管理 ({{usrTotal}})</h3>
+        </div>
+        <div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+          <table class="atb2">
+            <thead><tr><th>ID</th><th>用户名</th><th>邮箱</th><th>角色</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr v-for="u in usrList" :key="u.id">
+                <td>{{u.id}}</td>
+                <td>{{u.username}}</td>
+                <td>{{u.email}}</td>
+                <td><span class="stag" style="background:#e0e7ff;color:#4f46e5">{{u.role}}</span></td>
+                <td><span :class="['stag', u.is_active?'sdn':'sc']">{{u.is_active?'正常':'禁用'}}</span></td>
+                <td>{{u.created_at ? new Date(u.created_at).toLocaleString() : '-'}}</td>
+                <td>
+                  <button class="pg-btn" style="padding:4px 10px;font-size:12px" @click="toggleUser(u)"><i :class="u.is_active?'fas fa-ban':'fas fa-check'"></i> {{u.is_active?'禁用':'启用'}}</button>
+                  <button class="pg-btn" style="padding:4px 10px;font-size:12px;margin-left:4px" @click="setRole(u,'merchant')">设为商家</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-if="!usrList.length" class="pe" style="padding:40px"><i class="fas fa-users" style="font-size:32px"></i><p>暂无用户</p></div>
+          <div v-if="usrTotal>usrPageSize" class="pagination" style="margin-top:16px">
+            <button class="pg-btn nav" @click="usrPage--" :disabled="usrPage===1"><i class="fas fa-angle-left"></i></button>
+            <span style="padding:6px 12px">{{usrPage}} / {{Math.ceil(usrTotal/usrPageSize)}}</span>
+            <button class="pg-btn nav" @click="usrPage++" :disabled="usrPage>=Math.ceil(usrTotal/usrPageSize)"><i class="fas fa-angle-right"></i></button>
+          </div>
+        </div>
+      </template>
+
+      <!-- AI 智能分析 -->
+      <template v-if="menu==='ai'">
+        <div v-if="aiLoading" class="pe" style="padding:40px"><i class="fas fa-spinner fa-spin" style="font-size:32px;color:#2563EB"></i><p style="color:#94a3b8;margin-top:12px">AI 分析中...</p></div>
+        <div v-else>
+          <div class="cr">
+            <div class="cb"><h3>销售趋势预测（7天历史 + 3天预测）</h3><div class="cha" ref="aic"></div></div>
+            <div class="cb"><h3>用户画像</h3>
+              <div class="sc" style="grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+                <div class="scd" style="min-width:auto"><div class="sci blue"><i class="fas fa-users"></i></div><div class="scv">{{aiData.user_profile?.total_users||0}}</div><div class="scl">总用户</div></div>
+                <div class="scd" style="min-width:auto"><div class="sci green"><i class="fas fa-user-plus"></i></div><div class="scv">{{aiData.user_profile?.new_users_7d||0}}</div><div class="scl">7日新用户</div></div>
+                <div class="scd" style="min-width:auto"><div class="sci orange"><i class="fas fa-sync-alt"></i></div><div class="scv">{{aiData.user_profile?.repurchase_rate||0}}%</div><div class="scl">复购率</div></div>
+                <div class="scd" style="min-width:auto"><div class="sci purple"><i class="fas fa-user-check"></i></div><div class="scv">{{aiData.user_profile?.old_users||0}}</div><div class="scl">老用户</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="cb" style="margin-bottom:16px"><h3>🤖 AI 运营建议</h3>
+            <div v-for="(s,idx) in aiData.suggestions" :key="idx" style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #f0f2f5">
+              <span style="background:#2563EB;color:#fff;border-radius:50%;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">{{idx+1}}</span>
+              <span style="font-size:13px;color:#475569;line-height:1.6">{{s}}</span>
+            </div>
+            <div v-if="!aiData.suggestions||!aiData.suggestions.length" class="pe" style="padding:20px"><p style="color:#94a3b8">暂无建议</p></div>
+          </div>
+          <div class="cr">
+            <div class="cb"><h3>⚠️ 滞销商品（30天销量<5）</h3>
+              <table class="atb2" style="margin-top:8px"><thead><tr><th>商品</th><th>销量</th><th>库存</th></tr></thead>
+                <tbody><tr v-for="p in aiData.product_insights?.stagnant||[]" :key="p.id"><td>{{p.name}}</td><td>{{p.sales}}</td><td>{{p.stock}}</td></tr></tbody>
+              </table>
+              <div v-if="!aiData.product_insights?.stagnant?.length" class="pe" style="padding:20px"><p style="color:#94a3b8">暂无滞销商品</p></div>
+            </div>
+            <div class="cb"><h3>💡 潜力商品（高评分低销量）</h3>
+              <table class="atb2" style="margin-top:8px"><thead><tr><th>商品</th><th>评分</th><th>销量</th></tr></thead>
+                <tbody><tr v-for="p in aiData.product_insights?.potential||[]" :key="p.id"><td>{{p.name}}</td><td>⭐{{p.rating}}</td><td>{{p.sales}}</td></tr></tbody>
+              </table>
+              <div v-if="!aiData.product_insights?.potential?.length" class="pe" style="padding:20px"><p style="color:#94a3b8">暂无潜力商品</p></div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- 营销管理 -->
+      <template v-if="menu==='mkt'">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="margin:0">📢 营销活动</h3>
+          <button class="hero-btn" @click="openCampForm()" style="padding:8px 20px;font-size:13px"><i class="fas fa-plus"></i> 新增活动</button>
+        </div>
+        <div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.05);margin-bottom:20px">
+          <table class="atb2">
+            <thead><tr><th>名称</th><th>类型</th><th>折扣</th><th>时间</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr v-for="c in campList" :key="c.id">
+                <td>{{c.name}}</td>
+                <td><span class="stag" style="background:#e0e7ff;color:#4f46e5">{{c.campaign_type==='flash_sale'?'限时秒杀':c.campaign_type==='full_reduction'?'满减':c.campaign_type==='discount'?'固定折扣':c.campaign_type}}</span></td>
+                <td style="font-weight:700;color:#ef4444">{{c.campaign_type==='full_reduction'?'满'+c.min_order_amount+'减'+c.discount_value+'元':c.campaign_type==='flash_sale'?c.discount_value+'%':c.discount_value+'元'}}</td>
+                <td style="font-size:12px">{{c.start_time?.slice(0,10)}} ~ {{c.end_time?.slice(0,10)}}</td>
+                <td><span :class="['stag',c.is_active?'sdn':'sc']">{{c.is_active?'进行中':'已停用'}}</span></td>
+                <td>
+                  <button class="pg-btn" style="padding:4px 10px;font-size:12px" @click="openCampForm(c)"><i class="fas fa-edit"></i></button>
+                  <button class="pg-btn" style="padding:4px 10px;font-size:12px;margin-left:4px" :style="{color:c.is_active?'#ef4444':'#10b981'}" @click="toggleCamp(c)"><i :class="c.is_active?'fas fa-pause':'fas fa-play'"></i></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-if="!campList.length" class="pe" style="padding:40px"><i class="fas fa-bullhorn" style="font-size:32px"></i><p>暂无营销活动</p></div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <h3 style="margin:0">🖼️ Banner 轮播图</h3>
+          <button class="hero-btn" @click="openBannerForm()" style="padding:8px 20px;font-size:13px"><i class="fas fa-plus"></i> 新增 Banner</button>
+        </div>
+        <div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.05)">
+          <table class="atb2">
+            <thead><tr><th>预览</th><th>标题</th><th>链接</th><th>排序</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr v-for="b in bannerList" :key="b.id">
+                <td><img :src="b.image_url" style="width:80px;height:40px;object-fit:cover;border-radius:4px" @error="imgErr"></td>
+                <td>{{b.title}}</td>
+                <td style="font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{b.link_url}}</td>
+                <td>{{b.sort_order}}</td>
+                <td>
+                  <button class="pg-btn" style="padding:4px 10px;font-size:12px" @click="openBannerForm(b)"><i class="fas fa-edit"></i></button>
+                  <button class="pg-btn" style="padding:4px 10px;font-size:12px;margin-left:4px;color:#ef4444" @click="delBanner(b.id)"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-if="!bannerList.length" class="pe" style="padding:40px"><i class="fas fa-image" style="font-size:32px"></i><p>暂无轮播图</p></div>
+        </div>
+
+        <!-- Campaign Form Dialog -->
+        <div v-if="showCampForm" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center">
+          <div style="background:#fff;border-radius:16px;width:500px;max-height:90vh;overflow:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+            <h3 style="margin:0 0 20px">{{campForm.id?'编辑活动':'新增活动'}}</h3>
+            <div style="display:grid;gap:12px">
+              <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">活动名称</label><input v-model="campForm.name" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+              <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">活动类型</label>
+                <select v-model="campForm.campaign_type" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px">
+                  <option value="discount">固定折扣</option><option value="flash_sale">限时秒杀</option><option value="full_reduction">满减优惠</option>
+                </select>
+              </div>
+              <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">折扣值</label><input v-model.number="campForm.discount_value" type="number" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">开始时间</label><input v-model="campForm.start_time" type="datetime-local" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+                <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">结束时间</label><input v-model="campForm.end_time" type="datetime-local" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+              </div>
+              <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">描述</label><textarea v-model="campForm.description" rows="2" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box;resize:vertical"></textarea></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px">
+              <button class="pg-btn" style="padding:8px 20px" @click="showCampForm=false">取消</button>
+              <button class="hero-btn" style="padding:8px 24px;font-size:13px" @click="saveCamp" :disabled="campSaving"><i class="fas fa-save"></i> {{campSaving?'保存中...':'保存'}}</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Banner Form Dialog -->
+        <div v-if="showBannerForm" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center">
+          <div style="background:#fff;border-radius:16px;width:500px;max-height:90vh;overflow:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+            <h3 style="margin:0 0 20px">{{bannerForm.id?'编辑Banner':'新增Banner'}}</h3>
+            <div style="display:grid;gap:12px">
+              <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">标题</label><input v-model="bannerForm.title" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+              <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">图片</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <img v-if="bannerForm.image_url" :src="bannerForm.image_url" style="width:120px;height:60px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb">
+                  <div v-else style="width:120px;height:60px;border-radius:8px;border:1px dashed #d1d5db;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:12px">无图</div>
+                  <input type="file" accept="image/*" @change="onBannerUpload" style="font-size:12px">
+                </div>
+              </div>
+              <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">链接地址</label><input v-model="bannerForm.link_url" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+              <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">排序</label><input v-model.number="bannerForm.sort_order" type="number" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px">
+              <button class="pg-btn" style="padding:8px 20px" @click="showBannerForm=false">取消</button>
+              <button class="hero-btn" style="padding:8px 24px;font-size:13px" @click="saveBanner" :disabled="bannerSaving"><i class="fas fa-save"></i> {{bannerSaving?'保存中...':'保存'}}</button>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- 系统设置 -->
+      <template v-if="menu==='set'">
+        <div v-if="cfgLoading" class="pe" style="padding:40px"><i class="fas fa-spinner fa-spin" style="font-size:32px;color:#2563EB"></i><p style="color:#94a3b8;margin-top:12px">加载设置...</p></div>
+        <div v-else>
+          <div class="cb" style="margin-bottom:16px"><h3>🌐 网站信息</h3>
+            <div style="display:grid;gap:12px;margin-top:12px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">网站名称</label><input v-model="cfg.site_name" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+                <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">客服电话</label><input v-model="cfg.service_phone" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+              </div>
+              <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">网站描述</label><textarea v-model="cfg.site_description" placeholder="请输入网站描述..." rows="2" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box;resize:vertical"></textarea></div>
+            </div>
+          </div>
+          <div class="cb" style="margin-bottom:16px"><h3>💳 支付配置</h3>
+            <div style="display:grid;gap:12px;margin-top:12px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">微信支付商户号</label><input v-model="cfg.pay_wechat" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+                <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">支付宝 APPID</label><input v-model="cfg.pay_alipay" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+              </div>
+            </div>
+          </div>
+          <div class="cb" style="margin-bottom:16px"><h3>🚚 运费规则</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+              <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">免运费门槛 (元)</label><input v-model.number="cfg.free_shipping_threshold" type="number" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+              <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">基础运费 (元)</label><input v-model.number="cfg.shipping_fee" type="number" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:16px">
+            <button class="hero-btn" style="padding:10px 32px;font-size:14px" @click="saveConfigs" :disabled="cfgSaving"><i class="fas fa-save"></i> {{cfgSaving?'保存中...':'保存设置'}}</button>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- Product Form Dialog -->
+  <div v-if="showProdForm" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center">
+    <div style="background:#fff;border-radius:16px;width:560px;max-height:90vh;overflow:auto;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+      <h3 style="margin:0 0 20px">{{prodForm.id ? '编辑商品' : '新增商品'}}</h3>
+      <div style="display:grid;gap:12px">
+        <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">商品名称</label><input v-model="prodForm.name" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">价格</label><input v-model.number="prodForm.price" type="number" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+          <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">原价</label><input v-model.number="prodForm.original_price" type="number" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">库存</label><input v-model.number="prodForm.stock" type="number" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+          <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">品牌</label><input v-model="prodForm.brand" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+        </div>
+        <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">分类</label>
+          <select v-model="prodForm.category_id" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px">
+            <option v-for="c in categories" :value="c.id" :key="c.id">{{c.name}}</option>
+          </select>
+        </div>
+        <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">商品图片</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <img v-if="prodForm.image" :src="prodForm.image" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb">
+            <div v-else style="width:64px;height:64px;border-radius:8px;border:1px dashed #d1d5db;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:12px">无图</div>
+            <input type="file" accept="image/*" @change="onImageUpload" style="font-size:12px">
+          </div>
+        </div>
+        <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">标签 (逗号分隔)</label><input v-model="prodForm.tags" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box"></div>
+        <div><label style="font-size:13px;color:#606266;display:block;margin-bottom:4px">描述</label><textarea v-model="prodForm.description" rows="3" style="width:100%;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;box-sizing:border-box;resize:vertical"></textarea></div>
+        <div style="display:flex;gap:12px;margin-top:4px">
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" v-model="prodForm.is_recommend"> 推荐</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" v-model="prodForm.is_new"> 新品</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" v-model="prodForm.is_sale"> 特惠</label>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px">
+        <button class="pg-btn" style="padding:8px 20px" @click="showProdForm=false">取消</button>
+        <button class="hero-btn" style="padding:8px 24px;font-size:13px" @click="saveProd" :disabled="saving"><i class="fas fa-save"></i> {{saving?'保存中...':'保存'}}</button>
       </div>
     </div>
   </div>
 </div>`,
 setup() {
   const menu = ref('dash');
-  const lc = ref(null);
-  const pc = ref(null);
-  const stats = ref({});
-  const aOrders = ref([
-    {id:'20240001',u:'张三',p:'Nike Air Max 270',a:899,st:'已完成',sc:'dn'},
-    {id:'20240002',u:'李四',p:'Adidas Ultra Boost 22',a:1099,st:'已支付',sc:'d'},
-    {id:'20240003',u:'王五',p:'New Balance 574',a:599,st:'待处理',sc:'p'},
-    {id:'20240004',u:'赵六',p:'Converse Chuck 70',a:459,st:'已完成',sc:'dn'},
-    {id:'20240005',u:'孙七',p:'Puma RS-X',a:799,st:'已支付',sc:'d'}
-  ]);
+  const lc = ref(null); const pc = ref(null);
+  const stats = ref({}); const aOrders = ref([]); const topProducts = ref([]);
+  const searchKey = ref('');
 
-  onMounted(async () => {
-    // Try loading admin stats from API
-    try {
-      const d = await api('/api/admin/stats');
-      if (d) {
-        stats.value = {
-          revenue: d.total_revenue || d.revenue,
-          orders: d.total_orders || d.orders,
-          users: d.total_users || d.users,
-          ai_rate: d.ai_conversion || d.ai_rate
-        };
-      }
-    } catch(e) { /* use defaults */ }
+  // Product management
+  const prodList = ref([]); const prodPage = ref(1); const prodPageSize = ref(10); const prodTotal = ref(0);
+  const showProdForm = ref(false); const saving = ref(false);
+  const categories = ref([]);
+  const prodForm = ref({name:'',price:0,original_price:null,stock:0,brand:'',category_id:null,tags:'',description:'',image:'',is_recommend:false,is_new:false,is_sale:false});
 
+  // Order management
+  const ordList = ref([]); const ordPage = ref(1); const ordPageSize = ref(10); const ordTotal = ref(0);
+
+  // User management
+  const usrList = ref([]); const usrPage = ref(1); const usrPageSize = ref(10); const usrTotal = ref(0);
+
+  // AI Analysis
+  const aiData = ref({}); const aiLoading = ref(false); const aic = ref(null);
+
+  // Marketing
+  const campList = ref([]); const showCampForm = ref(false); const campSaving = ref(false);
+  const campForm = ref({name:'',campaign_type:'fixed',discount_value:0,start_time:'',end_time:'',description:''});
+  const bannerList = ref([]); const showBannerForm = ref(false); const bannerSaving = ref(false);
+  const bannerForm = ref({title:'',image_url:'',link_url:'',sort_order:0});
+
+  // System Settings
+  const cfg = ref({}); const cfgLoading = ref(false); const cfgSaving = ref(false);
+
+  const STATUS_MAP = {pending:{st:'待付款',sc:'p'},paid:{st:'已支付',sc:'d'},shipped:{st:'已发货',sc:'s'},completed:{st:'已完成',sc:'dn'},cancelled:{st:'已取消',sc:'c'},refunded:{st:'已退款',sc:'c'}};
+  const stMap = STATUS_MAP;
+  const currentUserRole = ref('');
+  const isAdmin = computed(() => currentUserRole.value === 'admin');
+  const authChecked = ref(false);
+
+  function fmtNum(n){ if(!n) return '0'; return Number(n).toLocaleString('zh-CN',{maximumFractionDigits:0}); }
+
+  // Load dashboard data
+  async function loadDashboard(){
+    let chartData=null;
+    try{ const d=await api('/api/admin/stats?days=7'); if(d){ stats.value={revenue:d.total_revenue||d.total_sales||0,orders:d.total_orders||0,users:d.total_users||0,products:d.total_products||0,pending:(d.order_status_dist||[]).find(s=>s.status==='pending')?.count||0,ai_rate:d.ai_conversion||0,days:7}; chartData=d; topProducts.value=(d.top_products||[]).slice(0,5);} }catch(e){}
+    try{ const od=await api('/api/admin/orders?page=1&page_size=5'); if(od&&od.items){ aOrders.value=od.items.map(o=>{ const sm=STATUS_MAP[o.status]||{st:o.status,sc:'p'}; const un=o.user_name||o.username||'用户'+o.user_id; const pi=(o.items||[])[0]||{}; return {id:o.id,u:un,p:pi.product_name||pi.name||'商品',a:o.total_amount,st:sm.st,sc:sm.sc}; }); } }catch(e){}
+    const initCharts = () => {
+      if(lc.value){ const _ex1=echarts.getInstanceByDom(lc.value); if(_ex1) _ex1.dispose(); const c=echarts.init(lc.value); const trend=chartData?.sales_trend||[]; const xData=trend.map(t=>t.date.slice(5)); const sData=trend.map(t=>t.sales); c.setOption({tooltip:{trigger:'axis',formatter:p=>p[0].name+'<br/>销售额: ¥'+Number(p[0].value).toLocaleString()},grid:{left:55,right:20,top:20,bottom:30},xAxis:{type:'category',data:xData.length?xData:['暂无数据']},yAxis:{type:'value',axisLabel:{formatter:v=>'¥'+v}},series:[{data:sData.length?sData:[0],type:'line',smooth:true,areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(37,99,235,.3)'},{offset:1,color:'rgba(37,99,235,.02)'}])},lineStyle:{color:'#2563EB',width:3},itemStyle:{color:'#2563EB'}}]}); window.addEventListener('resize',()=>c.resize()); }
+      if(pc.value){ const _ex2=echarts.getInstanceByDom(pc.value); if(_ex2) _ex2.dispose(); const c=echarts.init(pc.value); const dist=chartData?.order_status_dist||[]; const colors={pending:'#f59e0b',paid:'#2563EB',shipped:'#8b5cf6',completed:'#10b981',cancelled:'#94a3b8',refunded:'#ef4444'}; const labels={pending:'待付款',paid:'已支付',shipped:'已发货',completed:'已完成',cancelled:'已取消',refunded:'已退款'}; const pieData=dist.map(d=>({value:d.count,name:labels[d.status]||d.status,itemStyle:{color:colors[d.status]||'#6366f1'}})); c.setOption({tooltip:{trigger:'item',formatter:'{b}: {c} ({d}%)'},legend:{bottom:0,type:'scroll',textStyle:{fontSize:11}},series:[{type:'pie',radius:['40%','68%'],center:['50%','45%'],label:{show:true,fontSize:12,formatter:'{b}\\n{c}单'},data:pieData.length?pieData:[{value:1,name:'暂无数据',itemStyle:{color:'#cbd5e1'}}]}]}); window.addEventListener('resize',()=>c.resize()); }
+    };
+    requestAnimationFrame(() => { requestAnimationFrame(() => { initCharts(); }); });
+  }
+
+  // Load products
+  async function loadProducts(){
+    try{ const d=await api('/api/admin/products?page='+prodPage.value+'&page_size='+prodPageSize.value); if(d){ prodList.value=d.items||[]; prodTotal.value=d.total||0; } }catch(e){ const msg=e.detail||''; if(msg.includes('登录')||msg.includes('认证')||msg.includes('Token')) ElementPlus.ElMessage.error('登录已过期，请重新登录'); else if(msg.includes('权限')) ElementPlus.ElMessage.error('需要管理员权限'); else ElementPlus.ElMessage.error('加载商品失败: '+(msg||'网络或服务器错误')); }
+  }
+  // Load orders
+  async function loadOrders(){
+    try{ const d=await api('/api/admin/orders?page='+ordPage.value+'&page_size='+ordPageSize.value); if(d){ ordList.value=d.items||[]; ordTotal.value=d.total||0; ordList.value.forEach(o=>o._newStatus=''); } }catch(e){ const msg=e.detail||''; if(msg.includes('登录')||msg.includes('认证')||msg.includes('Token')) ElementPlus.ElMessage.error('登录已过期，请重新登录'); else if(msg.includes('权限')) ElementPlus.ElMessage.error('需要管理员权限'); else ElementPlus.ElMessage.error('加载订单失败: '+(msg||'网络或服务器错误')); }
+  }
+  // Load users
+  async function loadUsers(){
+    try{ const d=await api('/api/admin/users?page='+usrPage.value+'&page_size='+usrPageSize.value); if(d){ usrList.value=d.items||[]; usrTotal.value=d.total||0; } }catch(e){ const msg=e.detail||''; if(msg.includes('登录')||msg.includes('认证')||msg.includes('Token')) ElementPlus.ElMessage.error('登录已过期，请重新登录'); else if(msg.includes('权限')) ElementPlus.ElMessage.error('需要管理员权限'); else ElementPlus.ElMessage.error('加载用户失败: '+(msg||'网络或服务器错误')); }
+  }
+  // Load categories
+  async function loadCats(){
+    try{ const d=await api('/api/categories'); categories.value=d||[]; }catch(e){ categories.value=G.categories||[]; }
+  }
+
+  // Product form
+  function openProdForm(p=null){
+    if(p){ prodForm.value={...p,tags:(p.tags||[]).join(','),original_price:p.original_price||null}; }
+    else { prodForm.value={name:'',price:0,original_price:null,stock:0,brand:'',category_id:(categories.value[0]||{}).id,tags:'',description:'',image:'',is_recommend:false,is_new:false,is_sale:false}; }
+    showProdForm.value=true;
+  }
+  async function onImageUpload(e){
+    const file=e.target.files[0]; if(!file) return;
+    const fd=new FormData(); fd.append('file',file);
+    try{ const r=await fetch('/api/upload/image',{method:'POST',headers:{'Authorization':'Bearer '+(localStorage.getItem('token')||'')},body:fd}); const d=await r.json(); if(d.url){ prodForm.value.image=d.url; ElementPlus.ElMessage.success('上传成功'); } else { throw new Error('上传失败'); } }catch(err){ ElementPlus.ElMessage.error('上传失败: '+err.message); }
+  }
+  async function saveProd(){
+    saving.value=true;
+    const body={...prodForm.value,tags:prodForm.value.tags.split(',').map(t=>t.trim()).filter(Boolean)};
+    try{
+      if(prodForm.value.id){ await api('/api/admin/products/'+prodForm.value.id,{method:'PUT',body:JSON.stringify(body)}); ElementPlus.ElMessage.success('更新成功'); }
+      else { await api('/api/admin/products',{method:'POST',body:JSON.stringify(body)}); ElementPlus.ElMessage.success('创建成功'); }
+      showProdForm.value=false; await loadProducts();
+    }catch(e){ ElementPlus.ElMessage.error('保存失败: '+(e.message||'')); }
+    saving.value=false;
+  }
+  async function delProd(id){
+    if(!confirm('确定要下架该商品吗？')) return;
+    try{ await api('/api/admin/products/'+id,{method:'DELETE'}); ElementPlus.ElMessage.success('已下架'); await loadProducts(); }catch(e){ ElementPlus.ElMessage.error('操作失败'); }
+  }
+
+  // Order status update
+  async function updOrdStatus(o){
+    if(!o._newStatus) return;
+    try{ await api('/api/admin/orders/'+o.id+'/status',{method:'PUT',body:JSON.stringify({status:o._newStatus})}); ElementPlus.ElMessage.success('状态已更新'); o._newStatus=''; await loadOrders(); }catch(e){ ElementPlus.ElMessage.error('更新失败: '+(e.message||'')); o._newStatus=''; }
+  }
+
+  // User toggle
+  async function toggleUser(u){
+    try{ await api('/api/admin/users/'+u.id+'/status',{method:'PUT'}); ElementPlus.ElMessage.success('操作成功'); await loadUsers(); }catch(e){ ElementPlus.ElMessage.error('操作失败'); }
+  }
+  async function setRole(u,role){
+    try{ await api('/api/admin/users/'+u.id+'/role?role='+role,{method:'PUT'}); ElementPlus.ElMessage.success('角色已更新'); await loadUsers(); }catch(e){ ElementPlus.ElMessage.error('操作失败'); }
+  }
+
+  function doSearch(){
+    if(menu.value==='prod'){ prodPage.value=1; loadProducts(); }
+    else if(menu.value==='ord'){ ordPage.value=1; loadOrders(); }
+    else if(menu.value==='usr'){ usrPage.value=1; loadUsers(); }
+  }
+
+  // Load AI analysis
+  async function loadAI(){
+    aiLoading.value = true;
+    try { const d = await api('/api/admin/ai-analysis'); if(d) aiData.value = d; } catch(e) { console.error('AI分析加载失败:', e); }
+    aiLoading.value = false;
     nextTick(() => {
-      if (lc.value) {
-        const c = echarts.init(lc.value);
+      if(aic.value && aiData.value.sales_forecast){
+        const c = echarts.init(aic.value);
+        const hist = aiData.value.sales_forecast.historical || [];
+        const fore = aiData.value.sales_forecast.forecast || [];
+        const labels = aiData.value.sales_forecast.labels || [];
+        const allData = [...hist, ...fore];
         c.setOption({
-          tooltip:{trigger:'axis'},grid:{left:50,right:20,top:20,bottom:30},
-          xAxis:{type:'category',data:['周一','周二','周三','周四','周五','周六','周日']},
-          yAxis:{type:'value'},
-          series:[{data:[18200,22100,19800,24500,28900,32100,28560],type:'line',smooth:true,
-            areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(37,99,235,.3)'},{offset:1,color:'rgba(37,99,235,.02)'}])},
-            lineStyle:{color:'#2563EB',width:3},itemStyle:{color:'#2563EB'}}]
+          tooltip: {trigger:'axis', formatter: function(p){ return p[0].name+'<br/>销售额: ¥'+Number(p[0].value).toLocaleString(); }},
+          grid: {left:60,right:20,top:20,bottom:30},
+          xAxis: {type:'category', data: labels.length ? labels : ['暂无数据']},
+          yAxis: {type:'value', axisLabel:{formatter:function(v){return '¥'+v;}}},
+          series: [
+            {name:'历史', data: [...hist, ...Array(fore.length).fill(null)], type:'line', smooth:true, areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(37,99,235,.3)'},{offset:1,color:'rgba(37,99,235,.02)'}])}, lineStyle:{color:'#2563EB',width:3}, itemStyle:{color:'#2563EB'}},
+            {name:'预测', data: [...Array(hist.length).fill(null), ...fore], type:'line', smooth:true, lineStyle:{color:'#f59e0b',width:3,type:'dashed'}, itemStyle:{color:'#f59e0b'}}
+          ]
         });
-        window.addEventListener('resize', () => c.resize());
-      }
-      if (pc.value) {
-        const c = echarts.init(pc.value);
-        c.setOption({
-          tooltip:{trigger:'item'},
-          series:[{type:'pie',radius:['45%','72%'],center:['50%','52%'],label:{show:true,fontSize:12},
-            data:[{value:35,name:'AI推荐购买',itemStyle:{color:'#2563EB'}},{value:25,name:'搜索购买',itemStyle:{color:'#60a5fa'}},{value:20,name:'分类浏览',itemStyle:{color:'#f59e0b'}},{value:20,name:'活动购买',itemStyle:{color:'#10b981'}}]}]
-        });
-        window.addEventListener('resize', () => c.resize());
+        window.addEventListener('resize',()=>c.resize());
       }
     });
+  }
+
+  // Load campaigns
+  async function loadCamps(){
+    try { const d = await api('/api/admin/campaigns'); campList.value = d?.items || d || []; } catch(e) { console.error('加载营销活动失败:', e); }
+  }
+  function openCampForm(c=null){
+    if(c){ campForm.value = {...c, start_time: c.start_time?.slice(0,16), end_time: c.end_time?.slice(0,16)}; }
+    else { campForm.value = {name:'',campaign_type:'fixed',discount_value:0,start_time:'',end_time:'',description:''}; }
+    showCampForm.value = true;
+  }
+  async function saveCamp(){
+    campSaving.value = true;
+    const body = {...campForm.value};
+    if(body.start_time && body.start_time.length === 16) body.start_time += ':00';
+    if(body.end_time && body.end_time.length === 16) body.end_time += ':00';
+    try {
+      if(campForm.value.id){ await api('/api/admin/campaigns/'+campForm.value.id, {method:'PUT', body:JSON.stringify(body)}); ElementPlus.ElMessage.success('更新成功'); }
+      else { await api('/api/admin/campaigns', {method:'POST', body:JSON.stringify(body)}); ElementPlus.ElMessage.success('创建成功'); }
+      showCampForm.value = false; await loadCamps();
+    } catch(e) { ElementPlus.ElMessage.error('保存失败: '+(e.message||'')); }
+    campSaving.value = false;
+  }
+  async function toggleCamp(c){
+    try { await api('/api/admin/campaigns/'+c.id+'/toggle', {method:'PUT'}); ElementPlus.ElMessage.success('状态已切换'); await loadCamps(); } catch(e) { ElementPlus.ElMessage.error('操作失败'); }
+  }
+
+  // Load banners
+  async function loadBanners(){
+    try { const d = await api('/api/admin/banners'); bannerList.value = d?.items || d || []; } catch(e) { console.error('加载Banner失败:', e); }
+  }
+  function openBannerForm(b=null){
+    if(b){ bannerForm.value = {...b}; }
+    else { bannerForm.value = {title:'',image_url:'',link_url:'',sort_order:0}; }
+    showBannerForm.value = true;
+  }
+  async function onBannerUpload(e){
+    const file = e.target.files[0]; if(!file) return;
+    const fd = new FormData(); fd.append('file', file);
+    try { const r = await fetch('/api/upload/image', {method:'POST', headers:{'Authorization':'Bearer '+(localStorage.getItem('token')||'')}, body:fd}); const d = await r.json(); if(d.url){ bannerForm.value.image_url = d.url; ElementPlus.ElMessage.success('上传成功'); } else { throw new Error('上传失败'); } } catch(err) { ElementPlus.ElMessage.error('上传失败: '+err.message); }
+  }
+  async function saveBanner(){
+    bannerSaving.value = true;
+    try {
+      if(bannerForm.value.id){ await api('/api/admin/banners/'+bannerForm.value.id, {method:'PUT', body:JSON.stringify(bannerForm.value)}); ElementPlus.ElMessage.success('更新成功'); }
+      else { await api('/api/admin/banners', {method:'POST', body:JSON.stringify(bannerForm.value)}); ElementPlus.ElMessage.success('创建成功'); }
+      showBannerForm.value = false; await loadBanners();
+    } catch(e) { ElementPlus.ElMessage.error('保存失败: '+(e.message||'')); }
+    bannerSaving.value = false;
+  }
+  async function delBanner(id){
+    if(!confirm('确定要删除该Banner吗？')) return;
+    try { await api('/api/admin/banners/'+id, {method:'DELETE'}); ElementPlus.ElMessage.success('已删除'); await loadBanners(); } catch(e) { ElementPlus.ElMessage.error('删除失败'); }
+  }
+
+  // Load configs
+  async function loadConfigs(){
+    cfgLoading.value = true;
+    try { const d = await api('/api/admin/configs'); if(d){ const mapped = {}; for(const [k,v] of Object.entries(d)){ mapped[k] = typeof v === 'object' && v !== null ? (v.value ?? v) : v; } cfg.value = mapped; } } catch(e) { console.error('加载设置失败:', e); }
+    cfgLoading.value = false;
+  }
+  async function saveConfigs(){
+    cfgSaving.value = true;
+    try { await api('/api/admin/configs', {method:'PUT', body:JSON.stringify(cfg.value)}); ElementPlus.ElMessage.success('设置已保存'); } catch(e) { ElementPlus.ElMessage.error('保存失败: '+(e.message||'')); }
+    cfgSaving.value = false;
+  }
+
+  async function checkAdminAuth(){
+    if(!G.isLoggedIn){ authChecked.value = true; return false; }
+    try{
+      const d = await api('/api/auth/me');
+      if(d && d.role){
+        currentUserRole.value = d.role;
+        G.currentUser = d.username || '';
+      }
+    }catch(e){ console.error('获取用户信息失败', e); }
+    authChecked.value = true;
+    return currentUserRole.value === 'admin';
+  }
+
+  onMounted(async ()=>{
+    const isAdminUser = await checkAdminAuth();
+    if(!G.isLoggedIn){
+      ElementPlus.ElMessage.warning('请先登录管理员账号');
+      G.showAuth = true;
+      return;
+    }
+    if(!isAdminUser){
+      ElementPlus.ElMessage.error('当前账号不是管理员，请退出后用管理员账号登录');
+      return;
+    }
+    await loadCats();
+    await loadDashboard();
+    await loadProducts();
+    await loadOrders();
+    await loadUsers();
   });
 
-  return {menu, lc, pc, stats, aOrders};
+  watch(menu, (m)=>{ if(m==='dash') loadDashboard(); else if(m==='prod') loadProducts(); else if(m==='ord') loadOrders(); else if(m==='usr') loadUsers(); else if(m==='ai') loadAI(); else if(m==='mkt'){ loadCamps(); loadBanners(); } else if(m==='set') loadConfigs(); });
+  watch(prodPage, loadProducts);
+  watch(ordPage, loadOrders);
+  watch(usrPage, loadUsers);
+
+  return {menu, lc, pc, stats, aOrders, topProducts, fmtNum, searchKey, doSearch, G,
+    prodList, prodPage, prodPageSize, prodTotal, showProdForm, prodForm, openProdForm, onImageUpload, saveProd, delProd, saving, categories,
+    ordList, ordPage, ordPageSize, ordTotal, updOrdStatus, stMap,
+    usrList, usrPage, usrPageSize, usrTotal, toggleUser, setRole, imgErr,
+    aic, aiData, aiLoading,
+    campList, showCampForm, campForm, openCampForm, saveCamp, toggleCamp, campSaving,
+    bannerList, showBannerForm, bannerForm, openBannerForm, saveBanner, delBanner, onBannerUpload, bannerSaving,
+    cfg, cfgLoading, cfgSaving, saveConfigs};
 }};
 
 /* ====== ROUTER ====== */
@@ -1206,8 +2039,29 @@ const router = createRouter({
 const app = createApp({
   setup() {
     const isAdmin = computed(() => router.currentRoute.value.path === '/admin');
-    const doSearch = () => { router.push('/products'); };
-    return {G, isAdmin, doSearch};
+    const searchInput = ref('');
+    const networkStatus = Vue.ref(false);
+    let searchTimer = null;
+    
+    const doSearch = () => {
+      G.searchQuery = searchInput.value;
+      router.push('/products');
+    };
+    
+    const debouncedSearch = () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        G.searchQuery = searchInput.value;
+      }, 300);
+    };
+    
+    // 监听网络状态
+    setInterval(() => {
+      networkStatus.value = networkError;
+    }, 1000);
+    
+    const curRoute = computed(() => router.currentRoute.value.path);
+    return {G, isAdmin, doSearch, searchInput, debouncedSearch, networkError: networkStatus, curRoute};
   }
 });
 app.use(router);
@@ -1215,6 +2069,12 @@ app.use(ElementPlus);
 app.mount('#app');
 
 /* ====== INIT: Load data on startup ====== */
+// 恢复登录用户名
+  try {
+    const savedUser = localStorage.getItem('username');
+    if (savedUser && authToken) G.currentUser = savedUser;
+  } catch(e) {}
+
 (async function init() {
   await loadCategories();
   await loadAllProducts();

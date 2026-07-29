@@ -9,9 +9,33 @@
       <nav class="nav-links">
         <router-link to="/">首页</router-link>
         <router-link to="/products">全部商品</router-link>
+        <router-link to="/products?sort=sales">AI推荐</router-link>
+        <router-link to="/products?sort=newest">新品上市</router-link>
+        <router-link to="/products?keyword=特惠">限时特惠</router-link>
         <router-link to="/ai-chat">AI 助手</router-link>
         <router-link v-if="auth.isAdmin" to="/admin">管理后台</router-link>
       </nav>
+
+      <div class="nav-search">
+        <el-autocomplete
+          v-model="searchKeyword"
+          :fetch-suggestions="fetchSuggestions"
+          placeholder="搜索商品..."
+          clearable
+          @select="handleSearchSelect"
+          @keyup.enter="handleSearch"
+          style="width: 220px"
+        >
+          <template #prefix><el-icon><Search /></el-icon></template>
+          <template #default="{ item }">
+            <div class="suggest-item">
+              <span class="suggest-name">{{ item.value }}</span>
+              <el-tag v-if="item.type === 'brand'" size="small" type="info">品牌</el-tag>
+              <el-tag v-else-if="item.type === 'hot'" size="small" type="warning">热搜</el-tag>
+            </div>
+          </template>
+        </el-autocomplete>
+      </div>
 
       <div class="nav-actions">
         <router-link to="/cart" class="cart-btn">
@@ -47,13 +71,57 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCartStore } from '../stores/cart'
-import { ShoppingCart } from '@element-plus/icons-vue'
+import { ShoppingCart, Search } from '@element-plus/icons-vue'
+import { searchAPI } from '../api'
 
+const router = useRouter()
 const auth = useAuthStore()
 const cart = useCartStore()
 const scrolled = ref(false)
+const searchKeyword = ref('')
+
+async function fetchSuggestions(queryString, cb) {
+  if (!queryString || queryString.trim().length < 1) {
+    // Show hot searches when empty
+    try {
+      const res = await searchAPI.hot()
+      const hotItems = (res.data || []).slice(0, 5).map(h => ({
+        value: h.keyword,
+        type: 'hot',
+      }))
+      cb(hotItems)
+    } catch {
+      cb([])
+    }
+    return
+  }
+  try {
+    const res = await searchAPI.suggestions(queryString.trim())
+    const data = res.data || {}
+    const items = []
+    ;(data.products || []).forEach(p => items.push({ value: p, type: 'product' }))
+    ;(data.brands || []).forEach(b => items.push({ value: b, type: 'brand' }))
+    ;(data.hot_keywords || []).forEach(k => items.push({ value: k, type: 'hot' }))
+    cb(items.slice(0, 8))
+  } catch {
+    cb([])
+  }
+}
+
+function handleSearchSelect(item) {
+  if (item.value) {
+    router.push({ path: '/products', query: { keyword: item.value } })
+  }
+}
+
+function handleSearch() {
+  if (searchKeyword.value.trim()) {
+    router.push({ path: '/products', query: { keyword: searchKeyword.value.trim() } })
+  }
+}
 
 function handleScroll() { scrolled.value = window.scrollY > 10 }
 onMounted(() => {
@@ -100,6 +168,12 @@ function handleLogout() {
   background: linear-gradient(135deg, #6C5CE7, #FF6B6B);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+.nav-search { flex: 1; max-width: 300px; display: flex; justify-content: center; }
+.suggest-item { display: flex; align-items: center; justify-content: space-between; }
+.suggest-name { font-size: 13px; }
+@media (max-width: 768px) {
+  .nav-search { display: none; }
 }
 .nav-links { display: flex; gap: 28px; }
 .nav-links a {

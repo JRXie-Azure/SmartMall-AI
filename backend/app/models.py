@@ -125,6 +125,8 @@ class Product(Base):
     reviews = relationship("Review", back_populates="product", cascade="all, delete-orphan")
     favorites = relationship("Favorite", back_populates="product")
     views = relationship("ProductView", back_populates="product", cascade="all, delete-orphan")
+    skus = relationship("ProductSKU", back_populates="product", cascade="all, delete-orphan")
+    variants = relationship("ProductVariant", back_populates="product", cascade="all, delete-orphan")
 
 
 class CartItem(Base):
@@ -139,6 +141,10 @@ class CartItem(Base):
 
     user = relationship("User", back_populates="cart_items")
     product = relationship("Product")
+
+    __table_args__ = (
+        Index("idx_cart_user", "user_id"),
+    )
 
 
 # ==================== 订单系统 ====================
@@ -187,6 +193,10 @@ class OrderItem(Base):
     order = relationship("Order", back_populates="items")
     product = relationship("Product")
 
+    __table_args__ = (
+        Index("idx_order_item_order", "order_id"),
+    )
+
 
 class Review(Base):
     __tablename__ = "reviews"
@@ -203,6 +213,10 @@ class Review(Base):
 
     user = relationship("User", back_populates="reviews")
     product = relationship("Product", back_populates="reviews")
+
+    __table_args__ = (
+        Index("idx_review_product", "product_id"),
+    )
 
 
 # ==================== 新增: 浏览记录 (用于推荐) ====================
@@ -275,10 +289,14 @@ class ChatMessage(Base):
     session_id = Column(Integer, ForeignKey("chat_sessions.id"), nullable=False)
     sender_type = Column(String(20), nullable=False)  # user / ai / agent
     content = Column(Text, nullable=False)
-    metadata = Column(JSON, default=dict)  # 附加信息: 推荐商品ID列表、工具调用结果等
+    extra_data = Column("metadata", JSON, default=dict)  # 附加信息: 推荐商品ID列表、工具调用结果等
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     session = relationship("ChatSession", back_populates="messages")
+
+    __table_args__ = (
+        Index("idx_chatmsg_session", "session_id"),
+    )
 
 
 # ==================== 新增: 搜索历史 ====================
@@ -297,3 +315,142 @@ class SearchHistory(Base):
         Index("idx_search_user", "user_id"),
         Index("idx_search_keyword", "keyword"),
     )
+
+
+# ==================== 商品 SKU 系统 ====================
+
+class ProductSKU(Base):
+    """商品规格 SKU (颜色/尺寸等变体)"""
+    __tablename__ = "product_skus"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    sku_code = Column(String(100), nullable=False, index=True)  # 如: RED-42
+    # 规格属性 JSON: {"颜色": "红色", "尺寸": "42码"}
+    attributes = Column(JSON, default=dict)
+    price = Column(Float, nullable=True)  # 覆盖商品基础价，None 则使用商品价
+    stock = Column(Integer, default=0)
+    image = Column(String(500), default="")  # SKU 专属图片
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    product = relationship("Product", back_populates="skus")
+
+    __table_args__ = (
+        Index("idx_sku_product", "product_id"),
+    )
+
+
+class ProductVariant(Base):
+    """商品规格模板 (如: 颜色、尺寸)"""
+    __tablename__ = "product_variants"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    name = Column(String(50), nullable=False)  # 如: "颜色"
+    options = Column(JSON, default=list)  # ["红色", "蓝色", "黑色"]
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    product = relationship("Product", back_populates="variants")
+
+
+# ==================== 优惠券系统 ====================
+
+class Coupon(Base):
+    """优惠券/折扣券"""
+    __tablename__ = "coupons"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    code = Column(String(50), unique=True, nullable=False, index=True)  # 优惠码
+    name = Column(String(100), nullable=False)
+    description = Column(Text, default="")
+    # 优惠类型: fixed = 固定金额, percent = 百分比
+    discount_type = Column(String(20), default="fixed")
+    discount_value = Column(Float, nullable=False)  # 减多少元 / 百分比
+    min_order_amount = Column(Float, default=0)  # 最低消费
+    max_discount = Column(Float, nullable=True)  # 最大减免 (百分比时限制)
+    # 有效期
+    valid_from = Column(DateTime(timezone=True), nullable=True)
+    valid_until = Column(DateTime(timezone=True), nullable=True)
+    # 使用限制
+    total_limit = Column(Integer, default=0)  # 0 = 不限量
+    used_count = Column(Integer, default=0)
+    per_user_limit = Column(Integer, default=1)  # 每个用户限用次数
+    # 适用商品
+    applicable_products = Column(JSON, default=list)  # [product_id, ...] 空=全店通用
+    applicable_categories = Column(JSON, default=list)  # [category_id, ...]
+    # 状态
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class UserCoupon(Base):
+    """用户领取的优惠券"""
+    __tablename__ = "user_coupons"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    coupon_id = Column(Integer, ForeignKey("coupons.id"), nullable=False)
+    used_count = Column(Integer, default=0)
+    is_used = Column(Boolean, default=False)
+    used_at = Column(DateTime(timezone=True), nullable=True)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    coupon = relationship("Coupon")
+
+    __table_args__ = (
+        Index("idx_user_coupon", "user_id", "coupon_id"),
+    )
+
+# ==================== 营销活动 ====================
+
+class MarketingCampaign(Base):
+    """营销活动 (限时折扣/满减/秒杀)"""
+    __tablename__ = "marketing_campaigns"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(200), nullable=False)
+    campaign_type = Column(String(30), default="discount")  # discount / flash_sale / full_reduction
+    description = Column(Text, default="")
+    banner_image = Column(String(500), default="")
+    # 优惠规则
+    discount_value = Column(Float, default=0)  # 折扣金额或折扣率
+    min_order_amount = Column(Float, default=0)  # 满减门槛
+    # 时间范围
+    start_time = Column(DateTime(timezone=True), nullable=False)
+    end_time = Column(DateTime(timezone=True), nullable=False)
+    # 适用范围
+    applicable_products = Column(JSON, default=list)
+    applicable_categories = Column(JSON, default=list)
+    # 状态
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ==================== Banner 轮播图 ====================
+
+class Banner(Base):
+    """首页轮播图"""
+    __tablename__ = "banners"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    title = Column(String(200), default="")
+    image = Column(String(500), nullable=False)
+    link = Column(String(500), default="")  # 跳转链接
+    sort_order = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+# ==================== 网站配置 ====================
+
+class SiteConfig(Base):
+    """系统配置 (键值对)"""
+    __tablename__ = "site_configs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    config_key = Column(String(100), unique=True, nullable=False, index=True)
+    config_value = Column(Text, default="")
+    description = Column(String(500), default="")
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+

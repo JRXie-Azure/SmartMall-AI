@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from app.database import get_db, cache_delete_pattern
-from app.models import Order, OrderItem, CartItem, Product, Address, User
+from app.models import Order, OrderItem, CartItem, Product, Address, User, Coupon, UserCoupon
 from app.schemas import OrderOut, OrderCreate, OrderStatusUpdate
 from app.auth import get_current_user
 from app.config import get_settings
@@ -39,7 +39,7 @@ STATUS_LABELS = {
 }
 
 
-@router.get("", response_model=list[OrderOut])
+@router.get("")
 def list_orders(
     status: str = None,
     page: int = Query(1, ge=1),
@@ -51,10 +51,11 @@ def list_orders(
     query = db.query(Order).filter(Order.user_id == user.id)
     if status:
         query = query.filter(Order.status == status)
+    total = query.count()
     orders = query.order_by(Order.created_at.desc()).offset(
         (page - 1) * page_size
     ).limit(page_size).all()
-    return orders
+    return {"items": orders, "total": total, "page": page, "page_size": page_size}
 
 
 @router.post("", response_model=OrderOut)
@@ -109,6 +110,38 @@ def create_order(
     if not order_items_data:
         raise HTTPException(status_code=400, detail="购物车商品无效")
 
+    # 应用优惠券
+    discount_amount = 0
+    coupon = None
+    user_coupon = None
+    if data.coupon_code:
+        coupon = db.query(Coupon).filter(Coupon.code == data.coupon_code, Coupon.is_active == True).first()
+        if not coupon:
+            raise HTTPException(status_code=400, detail="无效的优惠码")
+        # 检查有效期
+        now = datetime.now()
+        if coupon.valid_from and now < coupon.valid_from:
+            raise HTTPException(status_code=400, detail="优惠券尚未生效")
+        if coupon.valid_until and now > coupon.valid_until:
+            raise HTTPException(status_code=400, detail="优惠券已过期")
+        if total < coupon.min_order_amount:
+            raise HTTPException(status_code=400, detail=f"订单金额未满 {coupon.min_order_amount} 元")
+        # 校验用户是否拥有该券
+        user_coupon = db.query(UserCoupon).filter(
+            UserCoupon.user_id == user.id,
+            UserCoupon.coupon_id == coupon.id,
+            UserCoupon.is_used == False
+        ).first()
+        if not user_coupon:
+            raise HTTPException(status_code=400, detail="您未持有该优惠券或已使用")
+        # 计算折扣
+        if coupon.discount_type == "fixed":
+            discount_amount = coupon.discount_value
+        elif coupon.discount_type == "percent":
+            discount_amount = min(total * coupon.discount_value / 100, coupon.max_discount or float('inf'))
+        discount_amount = min(discount_amount, total)
+        total -= discount_amount
+
     # 创建订单
     order = Order(
         user_id=user.id,
@@ -129,6 +162,12 @@ def create_order(
         product = db.query(Product).filter(Product.id == item_data["product_id"]).first()
         product.stock -= item_data["quantity"]
         product.sales += item_data["quantity"]
+
+    # 标记优惠券已使用
+    if discount_amount > 0 and coupon and user_coupon:
+        user_coupon.is_used = True
+        user_coupon.used_at = datetime.now()
+        user_coupon.order_id = order.id
 
     # 清空购物车
     for cart_item in cart_items:

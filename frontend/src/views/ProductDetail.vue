@@ -16,50 +16,97 @@
       </el-skeleton>
     </div>
 
-    <div v-else-if="product" class="detail-content">
-      <div class="detail-gallery">
-        <img :src="product.image" :alt="product.name" class="main-img" />
+    <template v-else-if="product">
+      <div class="detail-content">
+        <div class="detail-gallery">
+          <img :src="product.image" :alt="product.name" class="main-img" />
+        </div>
+
+        <div class="detail-info">
+          <div class="info-brand">{{ product.brand || 'SmartMall' }}</div>
+          <h1 class="info-name">{{ product.name }}</h1>
+
+          <div class="info-rating">
+            <el-rate :model-value="product.rating" disabled show-score text-color="#F39C12" />
+            <span class="sales-text">已售 {{ product.sales }} 件</span>
+          </div>
+
+          <div class="info-price">
+            <span class="current-price">¥{{ product.price }}</span>
+            <span v-if="product.original_price > product.price" class="original-price">¥{{ product.original_price }}</span>
+            <span v-if="product.is_sale" class="discount-tag">优惠中</span>
+          </div>
+
+          <div class="info-tags">
+            <el-tag v-if="product.is_recommend" type="danger">AI 推荐</el-tag>
+            <el-tag v-if="product.is_new" type="success">新品</el-tag>
+            <el-tag v-if="product.is_sale" type="warning">特惠</el-tag>
+          </div>
+
+          <el-icon class="fav-btn" :class="{ active: isFavorite }" @click="toggleFavorite">
+            <Star />
+          </el-icon>
+
+          <p class="info-desc">{{ product.description }}</p>
+
+          <div v-if="variants.length > 0" class="sku-section">
+            <div v-for="v in variants" :key="v.name" class="sku-group">
+              <span class="sku-label">{{ v.name }}</span>
+              <div class="sku-options">
+                <el-button v-for="opt in v.options" :key="opt" size="small"
+                  :type="selectedAttrs[v.name] === opt ? 'primary' : ''"
+                  @click="selectedAttrs[v.name] = opt">{{ opt }}</el-button>
+              </div>
+            </div>
+            <div v-if="selectedSku" class="sku-info">
+              <span class="sku-price">¥{{ selectedSku.price || product.price }}</span>
+              <span class="sku-stock">库存 {{ selectedSku.stock }} 件</span>
+            </div>
+          </div>
+
+          <div class="info-stock">
+            <span>库存：</span>
+            <span :class="{ 'low-stock': product.stock < 10 }">{{ product.stock > 0 ? product.stock + ' 件' : '暂时缺货' }}</span>
+          </div>
+
+          <div class="info-actions">
+            <el-input-number v-model="quantity" :min="1" :max="product.stock" :disabled="product.stock <= 0" />
+            <el-button type="primary" size="large" :disabled="product.stock <= 0" @click="addToCart">
+              <el-icon><ShoppingCart /></el-icon> 加入购物车
+            </el-button>
+            <el-button size="large" :disabled="product.stock <= 0" type="success" @click="buyNow">
+              立即购买
+            </el-button>
+          </div>
+        </div>
       </div>
 
-      <div class="detail-info">
-        <div class="info-brand">{{ product.brand || 'SmartMall' }}</div>
-        <h1 class="info-name">{{ product.name }}</h1>
-
-        <div class="info-rating">
-          <el-rate :model-value="product.rating" disabled show-score text-color="#F39C12" />
-          <span class="sales-text">已售 {{ product.sales }} 件</span>
+      <!-- 评价区域 -->
+      <div class="reviews-section" v-if="reviews.length > 0 || reviewFormVisible">
+        <h3 class="reviews-title">用户评价 ({{ reviews.length }})</h3>
+        <div v-if="reviews.length === 0" class="no-reviews">暂无评价</div>
+        <div v-else class="reviews-list">
+          <div v-for="r in reviews" :key="r.id" class="review-item">
+            <div class="review-header">
+              <span class="review-user">{{ r.username || '匿名用户' }}</span>
+              <el-rate :model-value="r.rating" disabled size="small" />
+              <span class="review-date">{{ formatDate(r.created_at) }}</span>
+            </div>
+            <p class="review-content">{{ r.content }}</p>
+          </div>
         </div>
-
-        <div class="info-price">
-          <span class="current-price">¥{{ product.price }}</span>
-          <span v-if="product.original_price > product.price" class="original-price">¥{{ product.original_price }}</span>
-          <span v-if="product.is_sale" class="discount-tag">优惠中</span>
-        </div>
-
-        <div class="info-tags">
-          <el-tag v-if="product.is_recommend" type="danger">AI 推荐</el-tag>
-          <el-tag v-if="product.is_new" type="success">新品</el-tag>
-          <el-tag v-if="product.is_sale" type="warning">特惠</el-tag>
-        </div>
-
-        <p class="info-desc">{{ product.description }}</p>
-
-        <div class="info-stock">
-          <span>库存：</span>
-          <span :class="{ 'low-stock': product.stock < 10 }">{{ product.stock > 0 ? product.stock + ' 件' : '暂时缺货' }}</span>
-        </div>
-
-        <div class="info-actions">
-          <el-input-number v-model="quantity" :min="1" :max="product.stock" :disabled="product.stock <= 0" />
-          <el-button type="primary" size="large" :disabled="product.stock <= 0" @click="addToCart">
-            <el-icon><ShoppingCart /></el-icon> 加入购物车
-          </el-button>
-          <el-button size="large" :disabled="product.stock <= 0" type="success" @click="buyNow">
-            立即购买
-          </el-button>
+        <el-button v-if="auth.isLoggedIn" type="primary" plain size="small" @click="reviewFormVisible = !reviewFormVisible" style="margin-top:12px">
+          {{ reviewFormVisible ? '收起' : '写评价' }}
+        </el-button>
+        <!-- 评价表单 -->
+        <div v-if="reviewFormVisible && auth.isLoggedIn" class="review-form">
+          <el-rate v-model="reviewForm.rating" />
+          <el-input v-model="reviewForm.content" type="textarea" :rows="3" placeholder="说说你的使用体验..." />
+          <el-checkbox v-model="reviewForm.is_anonymous">匿名评价</el-checkbox>
+          <el-button type="primary" size="small" @click="submitReview" :loading="reviewLoading">发表评价</el-button>
         </div>
       </div>
-    </div>
+    </template>
 
     <div v-else class="not-found">
       <span class="nf-icon">🔍</span>
@@ -70,12 +117,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { productsAPI } from '../api'
+import { productsAPI, skuAPI } from '../api'
 import { useCartStore } from '../stores/cart'
 import { useAuthStore } from '../stores/auth'
-import { ShoppingCart } from '@element-plus/icons-vue'
+import { ShoppingCart, Star } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const route = useRoute()
@@ -86,17 +133,87 @@ const auth = useAuthStore()
 const product = ref(null)
 const loading = ref(true)
 const quantity = ref(1)
+const variants = ref([])
+const skus = ref([])
+const selectedAttrs = ref({})
+const reviews = ref([])
+const reviewFormVisible = ref(false)
+const reviewForm = ref({ rating: 5, content: '', is_anonymous: false })
+const reviewLoading = ref(false)
+const isFavorite = ref(false)
+
+const selectedSku = computed(() => {
+  if (skus.value.length === 0) return null
+  return skus.value.find(s => {
+    const attrs = s.attributes || {}
+    return Object.keys(selectedAttrs.value).every(
+      k => selectedAttrs.value[k] === attrs[k]
+    )
+  })
+})
 
 async function loadProduct() {
   loading.value = true
   try {
-    const res = await productsAPI.getDetail(route.params.id)
+    const [res, skuRes] = await Promise.all([
+      productsAPI.getDetail(route.params.id),
+      skuAPI.getByProduct(route.params.id).catch(() => ({ data: { variants: [], skus: [] } }))
+    ])
     product.value = res.data
+    variants.value = skuRes.data?.variants || []
+    skus.value = skuRes.data?.skus || []
+    // 默认选中第一个选项
+    variants.value.forEach(v => {
+      if (v.options?.length > 0) {
+        selectedAttrs.value[v.name] = v.options[0]
+      }
+    })
+    // 加载评价
+    try {
+      const reviewRes = await productsAPI.getReviews(route.params.id)
+      reviews.value = reviewRes.data || []
+    } catch { reviews.value = [] }
+    // 检查收藏状态
+    if (auth.isLoggedIn) {
+      try {
+        const favRes = await productsAPI.checkFavorite(route.params.id)
+        isFavorite.value = favRes.data?.is_favorite || false
+      } catch {}
+    }
   } catch {
     product.value = null
   } finally {
     loading.value = false
   }
+}
+
+async function toggleFavorite() {
+  if (!auth.isLoggedIn) { router.push('/login'); return }
+  try {
+    const res = await productsAPI.addFavorite(product.value.id)
+    isFavorite.value = res.data?.is_favorite || !isFavorite.value
+    ElMessage.success(res.data?.message || '操作成功')
+  } catch { ElMessage.error('操作失败') }
+}
+
+async function submitReview() {
+  if (!reviewForm.value.content.trim()) { ElMessage.warning('请输入评价内容'); return }
+  reviewLoading.value = true
+  try {
+    const res = await productsAPI.createReview(product.value.id, reviewForm.value)
+    reviews.value.unshift(res.data)
+    reviewForm.value = { rating: 5, content: '', is_anonymous: false }
+    reviewFormVisible.value = false
+    ElMessage.success('评价发表成功')
+    // 刷新商品评分
+    await loadProduct()
+  } catch { ElMessage.error('评价失败') }
+  reviewLoading.value = false
+}
+
+function formatDate(d) {
+  if (!d) return ''
+  return new Date(d).toLocaleDateString('zh-CN')
 }
 
 function addToCart() {
@@ -147,4 +264,27 @@ onMounted(loadProduct)
   .detail-gallery { flex: none; width: 100%; }
   .info-actions { flex-wrap: wrap; }
 }
+.sku-section { margin: 16px 0; }
+.sku-group { margin-bottom: 12px; }
+.sku-label { font-size: 13px; color: var(--text-light); margin-bottom: 6px; display: block; }
+.sku-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.sku-info { margin-top: 8px; padding: 8px 12px; background: #f8f9fa; border-radius: 6px; }
+.sku-price { font-size: 18px; font-weight: 700; color: var(--accent); }
+.sku-stock { font-size: 12px; color: var(--text-light); margin-left: 8px; }
+
+.reviews-section { margin-top: 40px; background: white; border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+.reviews-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+.no-reviews { color: var(--text-light); text-align: center; padding: 32px; }
+.reviews-list { display: flex; flex-direction: column; gap: 16px; }
+.review-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.review-item:last-child { border-bottom: none; }
+.review-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.review-user { font-weight: 600; font-size: 13px; }
+.review-date { font-size: 12px; color: #bbb; margin-left: auto; }
+.review-content { font-size: 14px; color: var(--text); line-height: 1.6; }
+.review-form { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+
+.fav-btn { cursor: pointer; font-size: 20px; transition: transform 0.2s; }
+.fav-btn:hover { transform: scale(1.2); }
+.fav-btn.active { color: var(--accent); }
 </style>

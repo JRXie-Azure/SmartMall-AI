@@ -16,6 +16,9 @@ export const useAuthStore = defineStore('auth', () => {
       const res = await authAPI.login({ username, password })
       token.value = res.data.access_token
       localStorage.setItem('token', token.value)
+      if (res.data.refresh_token) {
+        localStorage.setItem('refresh_token', res.data.refresh_token)
+      }
       const me = await authAPI.getMe()
       user.value = me.data
       localStorage.setItem('user', JSON.stringify(user.value))
@@ -39,6 +42,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = ''
     user.value = null
     localStorage.removeItem('token')
+    localStorage.removeItem('refresh_token')
     localStorage.removeItem('user')
   }
 

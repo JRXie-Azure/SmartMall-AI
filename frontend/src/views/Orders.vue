@@ -15,7 +15,7 @@
     <div v-else class="orders-list">
       <div v-for="order in orders" :key="order.id" class="order-card card">
         <div class="order-header">
-          <span class="order-id">订单号：{{ order.id }}</span>
+          <span class="order-id">订单号：{{ order.order_no }}</span>
           <el-tag :type="statusType(order.status)" size="small">{{ order.status }}</el-tag>
           <span class="order-date">{{ formatDate(order.created_at) }}</span>
         </div>
@@ -32,17 +32,41 @@
         <div class="order-footer">
           <span class="order-total">合计：<strong>¥{{ order.total_amount.toFixed(2) }}</strong></span>
         </div>
+        <div class="order-actions" style="margin-top:12px;text-align:right">
+          <el-button v-if="order.status === 'pending'" size="small" type="primary" @click="goPay(order)">去支付</el-button>
+          <el-button v-if="order.status === 'pending'" size="small" @click="cancelOrder(order)">取消订单</el-button>
+          <el-button v-if="order.status === 'shipped'" size="small" type="success" @click="confirmReceive(order)">确认收货</el-button>
+          <el-button size="small" @click="$router.push(`/product/${order.items?.[0]?.product_id}`)">查看商品</el-button>
+        </div>
       </div>
+    </div>
+
+    <!-- 分页 -->
+    <div v-if="orders.length > 0 && total > pageSize" class="pagination-bar">
+      <el-pagination
+        v-model:current-page="page"
+        :page-size="pageSize"
+        :total="total"
+        layout="total, prev, pager, next"
+        @current-change="loadOrders"
+      />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { ordersAPI } from '../api'
 
 const orders = ref([])
 const loading = ref(true)
+const page = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+
+const router = useRouter()
 
 const statusMap = {
   pending: '',
@@ -59,13 +83,41 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString('zh-CN')
 }
 
-onMounted(async () => {
+async function loadOrders() {
+  loading.value = true
   try {
-    const res = await ordersAPI.getList()
+    const res = await ordersAPI.getList({ page: page.value, page_size: pageSize.value })
     orders.value = Array.isArray(res.data) ? res.data : (res.data?.items || [])
+    total.value = res.data?.total || orders.value.length
   } catch {}
   loading.value = false
-})
+}
+
+function goPay(order) {
+  router.push(`/pay/${order.id}`)
+}
+
+async function cancelOrder(order) {
+  try {
+    await ordersAPI.updateStatus(order.id, { status: 'cancelled' })
+    ElMessage.success('订单已取消')
+    loadOrders()
+  } catch {
+    ElMessage.error('取消失败')
+  }
+}
+
+async function confirmReceive(order) {
+  try {
+    await ordersAPI.updateStatus(order.id, { status: 'completed' })
+    ElMessage.success('已确认收货')
+    loadOrders()
+  } catch {
+    ElMessage.error('操作失败')
+  }
+}
+
+onMounted(loadOrders)
 </script>
 
 <style scoped>
@@ -99,4 +151,10 @@ onMounted(async () => {
 .order-footer { text-align: right; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 12px; }
 .order-total { font-size: 14px; }
 .order-total strong { font-size: 18px; color: var(--accent); }
+
+.pagination-bar {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
 </style>

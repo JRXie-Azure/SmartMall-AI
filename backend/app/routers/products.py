@@ -1,8 +1,9 @@
-"""
+﻿"""
 商品路由 — 含缓存、分类、浏览记录追踪
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlalchemy import func
+from sqlalchemy.orm import Session, selectinload
 from app.database import get_db, cache_get, cache_set, cache_delete_pattern
 from app.models import Product, Category, ProductView, Favorite, Review, User
 from app.schemas import (
@@ -31,7 +32,7 @@ def list_categories(db: Session = Depends(get_db)):
 @router.get("", response_model=ProductListOut)
 def list_products(
     page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    page_size: int = Query(20, ge=1, le=500),
     category_id: Optional[int] = None,
     keyword: Optional[str] = None,
     brand: Optional[str] = None,
@@ -66,8 +67,24 @@ def list_products(
     else:
         query = query.order_by(Product.created_at.desc())
 
-    products = query.offset((page - 1) * page_size).limit(page_size).all()
+    products = query.options(selectinload(Product.skus), selectinload(Product.variants)).offset((page - 1) * page_size).limit(page_size).all()
     return ProductListOut(items=products, total=total, page=page, page_size=page_size)
+
+
+@router.get("/favorites/list", response_model=list[ProductOut])
+def get_favorites(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """获取当前用户的收藏商品列表"""
+    favs = db.query(Favorite).filter(Favorite.user_id == user.id).all()
+    product_ids = [f.product_id for f in favs]
+    if not product_ids:
+        return []
+    products = db.query(Product).options(selectinload(Product.skus), selectinload(Product.variants)).filter(Product.id.in_(product_ids), Product.is_active == True).all()
+    # 按收藏时间倒序 (通过 favs 的顺序)
+    id_to_product = {p.id: p for p in products}
+    return [id_to_product[pid] for pid in product_ids if pid in id_to_product]
 
 
 @router.get("/{product_id}", response_model=ProductOut)
@@ -84,7 +101,7 @@ def get_product(
             record_product_view(db, user.id, product_id)
         return cached
 
-    product = db.query(Product).filter(Product.id == product_id).first()
+    product = db.query(Product).options(selectinload(Product.skus), selectinload(Product.variants)).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="商品不存在")
 
@@ -99,15 +116,18 @@ def get_product(
 
 # ====== 商品评价 ======
 
-@router.get("/{product_id}/reviews", response_model=list[ReviewOut])
+@router.get("/{product_id}/reviews")
 def get_product_reviews(
     product_id: int,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=50),
     db: Session = Depends(get_db),
 ):
-    """商品评价列表"""
+    """商品评价列表（分页）"""
+    total = db.query(func.count(Review.id)).filter(Review.product_id == product_id).scalar() or 0
     reviews = db.query(Review).filter(Review.product_id == product_id).order_by(
         Review.created_at.desc()
-    ).all()
+    ).offset((page - 1) * page_size).limit(page_size).all()
     result = []
     for r in reviews:
         user = db.query(User).filter(User.id == r.user_id).first()
@@ -117,7 +137,7 @@ def get_product_reviews(
             is_anonymous=r.is_anonymous, created_at=r.created_at,
             username="匿名用户" if r.is_anonymous else (user.username if user else "未知用户"),
         ))
-    return result
+    return {"items": result, "total": total, "page": page, "page_size": page_size}
 
 
 @router.post("/{product_id}/reviews", response_model=ReviewOut)
@@ -128,7 +148,7 @@ def create_review(
     db: Session = Depends(get_db),
 ):
     """发表评价"""
-    product = db.query(Product).filter(Product.id == product_id).first()
+    product = db.query(Product).options(selectinload(Product.skus), selectinload(Product.variants)).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="商品不存在")
 
@@ -175,13 +195,13 @@ def check_favorite(
 
 
 @router.post("/{product_id}/favorite")
-def toggle_favorite(
+def add_favorite(
     product_id: int,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """收藏/取消收藏"""
-    product = db.query(Product).filter(Product.id == product_id).first()
+    """收藏商品"""
+    product = db.query(Product).options(selectinload(Product.skus), selectinload(Product.variants)).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(status_code=404, detail="商品不存在")
 
@@ -191,11 +211,32 @@ def toggle_favorite(
     ).first()
 
     if fav:
-        db.delete(fav)
-        db.commit()
-        return {"is_favorite": False, "message": "已取消收藏"}
-    else:
-        fav = Favorite(user_id=user.id, product_id=product_id)
-        db.add(fav)
-        db.commit()
         return {"is_favorite": True, "message": "已收藏"}
+    fav = Favorite(user_id=user.id, product_id=product_id)
+    db.add(fav)
+    db.commit()
+    return {"is_favorite": True, "message": "已收藏"}
+
+
+@router.delete("/{product_id}/favorite")
+def remove_favorite(
+    product_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """取消收藏商品"""
+    fav = db.query(Favorite).filter(
+        Favorite.user_id == user.id,
+        Favorite.product_id == product_id,
+    ).first()
+
+    if not fav:
+        return {"is_favorite": False, "message": "未收藏"}
+    db.delete(fav)
+    db.commit()
+    return {"is_favorite": False, "message": "已取消收藏"}
+
+
+
+
+

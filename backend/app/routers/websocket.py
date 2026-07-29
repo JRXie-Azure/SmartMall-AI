@@ -12,6 +12,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query
 from sqlalchemy.orm import Session
 from app.database import get_db, SessionLocal
 from app.models import ChatSession, ChatMessage as ChatMessageModel, User
+from app.auth import get_current_user, get_current_user_optional, get_current_admin
 from app.services.llm_service import chat_completion, execute_tool_call
 from app.config import get_settings
 
@@ -28,22 +29,40 @@ pending_human_sessions: set[str] = set()
 @router.websocket("/ws/chat")
 async def websocket_chat(
     websocket: WebSocket,
+    token: str = Query(None),
     db: Session = Depends(get_db),
 ):
     """
     WebSocket 客服端点
-    前端连接: ws://localhost:8001/ws/chat
+    前端连接: ws://localhost:8001/ws/chat?token=YOUR_JWT_TOKEN
 
     消息格式:
     入: {"type": "message", "content": "你好", "session_id": "xxx"}
     出: {"type": "reply", "content": "你好！有什么可以帮你的？", "sender": "ai"}
     """
+    # JWT 认证
+    user_id = None
+    if token:
+        try:
+            from app.auth import decode_access_token
+            payload = decode_access_token(token)
+            user_id = int(payload.get("sub"))
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user or not user.is_active:
+                await websocket.close(code=4001, reason="无效的认证信息")
+                return
+        except Exception:
+            await websocket.close(code=4001, reason="认证失败")
+            return
+
     await websocket.accept()
     session_id = str(uuid.uuid4())
 
     # 创建会话记录
     chat_session = ChatSession(
         session_id=session_id,
+        user_id=user_id,
+        user_name=user.username if user_id and user else "访客",
         status="active",
     )
     db.add(chat_session)
@@ -188,10 +207,9 @@ async def websocket_chat(
 @router.get("/ws/sessions")
 async def list_chat_sessions(
     db: Session = Depends(get_db),
-    admin: User = Depends(get_current_user),
+    admin: User = Depends(get_current_admin),
 ):
     """获取客服会话列表 (管理员)"""
-    from app.auth import get_current_admin
     sessions = db.query(ChatSession).order_by(ChatSession.created_at.desc()).limit(50).all()
     return [{
         "session_id": s.session_id,
@@ -207,6 +225,7 @@ async def list_chat_sessions(
 async def get_session_messages(
     session_id: str,
     db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin),
 ):
     """获取某个会话的消息历史"""
     session = db.query(ChatSession).filter(ChatSession.session_id == session_id).first()
@@ -218,6 +237,6 @@ async def get_session_messages(
         "id": m.id,
         "sender_type": m.sender_type,
         "content": m.content,
-        "metadata": m.metadata,
+        "metadata": m.extra_data,
         "created_at": m.created_at,
     } for m in session.messages]

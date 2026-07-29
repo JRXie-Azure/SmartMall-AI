@@ -1,0 +1,45 @@
+﻿name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Seed database
+        working-directory: backend
+        run: |
+          python -c "from app.database import engine, Base; Base.metadata.create_all(engine); from app.seed import seed; seed()"
+
+      - name: Run pytest with coverage
+        working-directory: backend
+        env:
+          DEBUG: "false"
+          DEEPSEEK_API_KEY: ""
+        run: |
+          python -m pytest -v --tb=short
+
+      - name: Upload coverage HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: backend/htmlcov/

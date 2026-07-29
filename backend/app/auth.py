@@ -17,6 +17,8 @@ from app.models import User
 settings = get_settings()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+# 可选认证: 没有 token 时不报错，返回 None
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
 
 def hash_password(password: str) -> str:
@@ -36,8 +38,28 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
-    to_encode["exp"] = expire
+    to_encode.update({"exp": expire, "type": "access"})
     return jwt_encode(to_encode)
+
+
+def create_refresh_token(data: dict) -> str:
+    """创建刷新 Token (有效期 7 天)"""
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    to_encode.update({"exp": expire, "type": "refresh"})
+    return jwt_encode(to_encode)
+
+
+def decode_access_token(token: str) -> dict:
+    """解码并验证 Token"""
+    from jose import jwt, JWTError
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        if payload.get("type") != "access":
+            raise HTTPException(status_code=401, detail="无效的 Token 类型")
+        return payload
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Token 无效或已过期")
 
 
 def jwt_encode(payload: dict) -> str:
@@ -87,7 +109,7 @@ def get_current_user(
 
 
 def get_current_user_optional(
-    token: Optional[str] = Depends(oauth2_scheme),
+    token: Optional[str] = Depends(oauth2_scheme_optional),
     db: Session = Depends(get_db),
 ) -> Optional[User]:
     """可选认证: 有 token 返回用户，没有返回 None"""

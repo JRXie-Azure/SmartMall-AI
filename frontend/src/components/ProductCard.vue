@@ -32,7 +32,7 @@ import { useCartStore } from '../stores/cart'
 import { useAuthStore } from '../stores/auth'
 import { ElMessage } from 'element-plus'
 
-defineProps({ product: Object })
+const props = defineProps({ product: Object })
 const cart = useCartStore()
 const auth = useAuthStore()
 
@@ -41,7 +41,7 @@ function handleAddCart() {
     ElMessage.warning('请先登录')
     return
   }
-  cart.addItem(this?.product?.id || 1)
+  cart.addItem(props.product.id)
 }
 </script>
 

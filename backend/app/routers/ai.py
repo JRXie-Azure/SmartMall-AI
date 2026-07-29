@@ -10,7 +10,7 @@ from app.database import get_db
 from app.config import get_settings
 from app.models import Product, ChatSession, ChatMessage as ChatMessageModel
 from app.schemas import ChatMessage, ChatResponse, ProductOut
-from app.auth import get_current_user, get_current_user_optional
+from app.auth import get_current_user, get_current_user_optional, get_current_admin
 from app.models import User
 from app.services.llm_service import chat_completion, chat_completion_stream, execute_tool_call
 from app.services.rag_service import rag_search, index_all_products, is_rag_available
@@ -86,6 +86,18 @@ async def ai_chat(
         # 第二次调用 LLM (基于工具结果生成回复)
         final_result = await chat_completion(messages, use_tools=False)
         reply = final_result["content"]
+
+        # 如果 LLM 没有生成有效回复 (V4 推理模型有时只返回工具指令)，
+        # 用工具结果组装自然语言回复
+        if not reply:
+            if recommended_products:
+                product_names = "、".join(f"{p.name}（¥{p.price}）" for p in recommended_products[:5])
+                reply = f"根据您的需求，为您找到以下商品推荐：{product_names}。点击商品卡片可以查看详情哦！"
+            else:
+                reply = "我理解您的需求，但暂时没有找到完全匹配的商品。您可以换个关键词试试，或者浏览我们的推荐栏目～"
+        elif result["content"]:
+            # 如果第一次调用就返回了自然语言回复，合并进来
+            reply = result["content"] + "\n\n" + reply if reply else result["content"]
     else:
         reply = result["content"]
 
@@ -104,6 +116,7 @@ async def ai_chat_stream(
 ):
     """
     AI 对话 (SSE 流式) — 逐字返回
+    支持 Function Calling: 先非流式获取工具调用, 执行后再流式输出最终回复
     """
     user_id = user.id if user else None
     messages = []
@@ -112,8 +125,41 @@ async def ai_chat_stream(
     messages.append({"role": "user", "content": data.message})
 
     async def event_stream():
-        async for chunk in chat_completion_stream(messages, use_tools=False):
-            yield f"data: {json.dumps({'content': chunk}, ensure_ascii=False)}\n\n"
+        # 1. 先非流式调用, 让 LLM 决定是否需要工具
+        result = await chat_completion(messages, use_tools=True)
+        tool_calls = result.get("tool_calls", [])
+
+        if tool_calls:
+            # 2. 执行工具调用
+            for tc in tool_calls:
+                func_name = tc["function"]["name"]
+                try:
+                    func_args = json.loads(tc["function"]["arguments"])
+                except json.JSONDecodeError:
+                    func_args = {}
+
+                tool_result = await execute_tool_call(func_name, func_args, db, user_id)
+                messages.append({
+                    "role": "assistant",
+                    "content": None,
+                    "tool_calls": [tc]
+                })
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tc.get("id", "call_0"),
+                    "content": tool_result
+                })
+
+            # 3. 基于工具结果流式输出最终回复
+            async for chunk in chat_completion_stream(messages, use_tools=False):
+                yield f"data: {json.dumps({'content': chunk}, ensure_ascii=False)}\n\n"
+        else:
+            # 无工具调用, 直接流式输出第一次回复
+            if result.get("content"):
+                yield f"data: {json.dumps({'content': result['content']}, ensure_ascii=False)}\n\n"
+            else:
+                async for chunk in chat_completion_stream(messages, use_tools=False):
+                    yield f"data: {json.dumps({'content': chunk}, ensure_ascii=False)}\n\n"
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(
@@ -225,11 +271,11 @@ def rag_product_search(
 @router.post("/rag/index")
 def index_products(
     db: Session = Depends(get_db),
-    admin: User = Depends(get_current_user),
+    admin: User = Depends(get_current_admin),
 ):
     """手动触发商品向量索引 (管理员)"""
     if not is_rag_available():
-        raise HTTPException(status_code=503, detail="RAG 服务未启用 (需要 chromadb + sentence-transformers)")
+        raise HTTPException(status_code=503, detail="RAG 服务未启用 (需要 scikit-learn)")
     count = index_all_products(db)
     return {"message": f"成功索引 {count} 个商品", "count": count}
 
@@ -241,5 +287,5 @@ def ai_status():
         "llm_enabled": bool(settings.llm_api_key),
         "llm_model": settings.llm_model if settings.llm_api_key else "未配置",
         "rag_enabled": is_rag_available(),
-        "embedding_model": settings.EMBEDDING_MODEL if is_rag_available() else "未加载",
+        "embedding_model": "TF-IDF (scikit-learn)" if is_rag_available() else "未加载",
     }

@@ -1,5 +1,5 @@
 # ====== SmartMall-AI Backend Dockerfile ======
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 WORKDIR /app
 
@@ -17,8 +17,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # 创建必要目录
-RUN mkdir -p /app/uploads /app/chroma_db
+RUN mkdir -p /app/uploads
 
 EXPOSE 8001
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+# 启动: 先执行数据库迁移, 再启动服务
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8001"]

@@ -1,152 +1,186 @@
 """
-RAG 服务 — 向量检索增强生成
-使用 sentence-transformers 生成商品向量 + ChromaDB 存储/检索
+RAG 服务 — 语义检索增强生成
+使用 scikit-learn TF-IDF + 余弦相似度实现轻量级语义搜索
+无需 sentence-transformers / chromadb 等重型依赖，适配所有 Python 版本
+
+原理:
+1. 将商品文本 (名称+品牌+描述+分类+标签) 用 TF-IDF 向量化
+2. 用户查询同样向量化
+3. 计算余弦相似度，返回最相关的 top_k 商品
 """
 import logging
 import json
+import numpy as np
 from typing import List, Dict, Optional
 from app.config import get_settings
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
 
-# 懒加载: 只在首次使用时初始化
-_embedding_model = None
-_chroma_client = None
-_chroma_collection = None
+# 全局索引状态
+_vectorizer = None
+_tfidf_matrix = None          # 稀疏矩阵: 所有商品的 TF-IDF 向量
+_product_ids = []             # 商品 ID 列表 (与矩阵行对应)
+_product_docs = []            # 商品文档文本列表 (用于返回匹配片段)
+_product_meta = {}            # product_id -> {name, brand, price, category}
+_indexed = False              # 是否已索引
 
 
-def _get_embedding_model():
-    """懒加载 sentence-transformers 模型"""
-    global _embedding_model
-    if _embedding_model is None:
-        try:
-            from sentence_transformers import SentenceTransformer
-            _embedding_model = SentenceTransformer(settings.EMBEDDING_MODEL)
-            logger.info(f"Embedding 模型加载成功: {settings.EMBEDDING_MODEL}")
-        except ImportError:
-            logger.warning("sentence-transformers 未安装，RAG 功能降级")
-            return None
-        except Exception as e:
-            logger.warning(f"Embedding 模型加载失败: {e}")
-            return None
-    return _embedding_model
+def _build_doc(name: str, description: str, brand: str,
+               category: str = "", tags: list = None) -> str:
+    """构造商品文档文本: 综合名称、品牌、描述、分类、标签"""
+    tags_str = " ".join(tags) if tags else ""
+    return f"{name} {brand} {category} {tags_str} {description or ''}".strip()
 
 
-def _get_chroma_collection():
-    """懒加载 ChromaDB collection"""
-    global _chroma_client, _chroma_collection
-    if _chroma_collection is None:
-        try:
-            import chromadb
-            _chroma_client = chromadb.PersistentClient(path=settings.CHROMA_PERSIST_DIR)
-            _chroma_collection = _chroma_client.get_or_create_collection(
-                name="products",
-                metadata={"description": "SmartMall 商品向量索引"}
-            )
-            logger.info("ChromaDB 初始化成功")
-        except ImportError:
-            logger.warning("chromadb 未安装，RAG 功能降级")
-            return None
-        except Exception as e:
-            logger.warning(f"ChromaDB 初始化失败: {e}")
-            return None
-    return _chroma_collection
+def _init_vectorizer():
+    """初始化 TfidfVectorizer (按字符分词，适配中文)"""
+    global _vectorizer
+    if _vectorizer is None:
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        _vectorizer = TfidfVectorizer(
+            analyzer="char_wb",       # 按字符 n-gram 分词 (适配中文)
+            ngram_range=(1, 2),       # unigram + bigram
+            min_df=1,                 # 最低文档频率
+            max_features=10000,       # 最大特征数
+        )
+        logger.info("TF-IDF 向量化器初始化成功 (analyzer=char_wb, ngram=(1,2))")
+    return _vectorizer
 
 
 def index_product(product_id: int, name: str, description: str, brand: str,
                   price: float, category: str = "", tags: list = None):
-    """将商品索引进 ChromaDB"""
-    collection = _get_chroma_collection()
-    model = _get_embedding_model()
-    if not collection or not model:
-        return
-
-    # 构造文档: 综合商品名称、品牌、描述、分类、标签
-    tags_str = " ".join(tags) if tags else ""
-    doc_text = f"{name} {brand} {category} {tags_str} {description}"
-    doc_text = doc_text.strip()
-
-    try:
-        embedding = model.encode(doc_text).tolist()
-        collection.upsert(
-            ids=[str(product_id)],
-            embeddings=[embedding],
-            documents=[doc_text],
-            metadatas=[{
-                "product_id": product_id,
-                "name": name,
-                "brand": brand,
-                "price": price,
-                "category": category,
-            }]
-        )
-    except Exception as e:
-        logger.error(f"商品索引失败 (id={product_id}): {e}")
+    """
+    将商品加入索引 (单个)
+    注意: 实际索引在 index_all_products 或 _rebuild_index 中批量执行
+    """
+    doc = _build_doc(name, description, brand, category, tags)
+    _product_meta[product_id] = {
+        "product_id": product_id,
+        "name": name,
+        "brand": brand,
+        "price": price,
+        "category": category,
+    }
+    # 标记需要重建索引
+    global _indexed
+    _indexed = False
 
 
-def index_all_products(db):
-    """批量索引所有商品"""
+def index_all_products(db) -> int:
+    """批量索引所有商品到 TF-IDF 矩阵"""
+    global _product_ids, _product_docs, _product_meta, _tfidf_matrix, _indexed
+
     from app.models import Product, Category
     products = db.query(Product).filter(Product.is_active == True).all()
     categories = {c.id: c.name for c in db.query(Category).all()}
 
+    _product_ids = []
+    _product_docs = []
+    _product_meta = {}
+
     for p in products:
         cat_name = categories.get(p.category_id, "")
-        index_product(
-            product_id=p.id,
+        doc = _build_doc(
             name=p.name,
             description=p.description or "",
             brand=p.brand or "",
-            price=p.price,
             category=cat_name,
             tags=p.tags if p.tags else []
         )
-    logger.info(f"已索引 {len(products)} 个商品到 ChromaDB")
+        _product_ids.append(p.id)
+        _product_docs.append(doc)
+        _product_meta[p.id] = {
+            "product_id": p.id,
+            "name": p.name,
+            "brand": p.brand,
+            "price": p.price,
+            "category": cat_name,
+        }
+
+    # 构建 TF-IDF 矩阵
+    if _product_docs:
+        vectorizer = _init_vectorizer()
+        _tfidf_matrix = vectorizer.fit_transform(_product_docs)
+        _indexed = True
+        logger.info(f"已索引 {len(products)} 个商品到 TF-IDF 矩阵 (特征维度: {_tfidf_matrix.shape[1]})")
+    else:
+        _tfidf_matrix = None
+        _indexed = True
+        logger.warning("没有商品可索引")
+
     return len(products)
 
 
-def rag_search(query: str, top_k: int = 5) -> List[Dict]:
-    """
-    RAG 语义搜索: 用户自然语言 → 向量检索 → 返回相关商品
-    """
-    collection = _get_chroma_collection()
-    model = _get_embedding_model()
+def _ensure_indexed(db=None):
+    """确保索引已构建 (懒加载)"""
+    global _indexed
+    if not _indexed:
+        if db is None:
+            from app.database import SessionLocal
+            db = SessionLocal()
+            try:
+                index_all_products(db)
+            finally:
+                db.close()
+        else:
+            index_all_products(db)
 
-    if not collection or not model:
+
+def rag_search(query: str, top_k: int = 5, db=None) -> List[Dict]:
+    """
+    RAG 语义搜索: 用户自然语言 → TF-IDF 向量检索 → 返回相关商品
+
+    示例: rag_search("适合跑步的轻便鞋子，预算800以内") → 返回跑鞋相关商品
+    """
+    _ensure_indexed(db)
+
+    if _tfidf_matrix is None or not _product_ids:
         return []
 
     try:
-        query_embedding = model.encode(query).tolist()
-        results = collection.query(
-            query_embeddings=[query_embedding],
-            n_results=top_k,
-            include=["documents", "metadatas", "distances"]
-        )
+        from sklearn.metrics.pairwise import cosine_similarity
 
-        if not results["ids"] or not results["ids"][0]:
-            return []
+        vectorizer = _init_vectorizer()
+        # 将查询向量化 (使用已 fit 的 vectorizer)
+        query_vec = vectorizer.transform([query])
 
-        items = []
-        for i, pid in enumerate(results["ids"][0]):
-            meta = results["metadatas"][0][i]
-            distance = results["distances"][0][i]
-            similarity = 1 - distance  # 距离越小相似度越高
-            items.append({
-                "id": int(pid),
+        # 计算查询与所有商品的余弦相似度
+        similarities = cosine_similarity(query_vec, _tfidf_matrix).flatten()
+
+        # 取相似度最高的 top_k (过滤掉相似度为 0 的)
+        top_indices = np.argsort(similarities)[::-1][:top_k]
+
+        results = []
+        for idx in top_indices:
+            sim = similarities[idx]
+            if sim <= 0:
+                continue
+            pid = _product_ids[idx]
+            meta = _product_meta.get(pid, {})
+            doc = _product_docs[idx][:200] if idx < len(_product_docs) else ""
+            results.append({
+                "id": pid,
                 "name": meta.get("name", ""),
                 "brand": meta.get("brand", ""),
                 "price": meta.get("price", 0),
                 "category": meta.get("category", ""),
-                "similarity": round(similarity, 4),
-                "document": results["documents"][0][i][:200]
+                "similarity": round(float(sim), 4),
+                "document": doc,
             })
-        return items
+
+        return results
     except Exception as e:
         logger.error(f"RAG 搜索失败: {e}")
         return []
 
 
 def is_rag_available() -> bool:
-    """检查 RAG 是否可用"""
-    return _get_chroma_collection() is not None and _get_embedding_model() is not None
+    """检查 RAG 是否可用 (scikit-learn 已安装即可)"""
+    try:
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        from sklearn.metrics.pairwise import cosine_similarity
+        return True
+    except ImportError:
+        logger.warning("scikit-learn 未安装，RAG 功能不可用")
+        return False

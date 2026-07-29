@@ -14,11 +14,11 @@
           </div>
           <div class="hero-stats">
             <div class="stat-item">
-              <span class="stat-num">16</span>
+              <span class="stat-num">{{ productCount }}</span>
               <span class="stat-label">精选商品</span>
             </div>
             <div class="stat-item">
-              <span class="stat-num">4</span>
+              <span class="stat-num">{{ categories.length }}</span>
               <span class="stat-label">商品分类</span>
             </div>
             <div class="stat-item">
@@ -32,13 +32,13 @@
             <span class="hero-emoji">🛒</span>
           </div>
           <div class="floating-card card-1">
-            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff" alt="运动鞋" />
+            <span class="card-emoji">👟</span>
           </div>
           <div class="floating-card card-2">
-            <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30" alt="手表" />
+            <span class="card-emoji">⌚</span>
           </div>
           <div class="floating-card card-3">
-            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e" alt="耳机" />
+            <span class="card-emoji">🎧</span>
           </div>
         </div>
       </div>
@@ -99,14 +99,15 @@ import ProductCard from '../components/ProductCard.vue'
 const featuredProducts = ref([])
 const categories = ref([])
 const loading = ref(true)
+const productCount = ref(0)
 const catIcons = ['👟', '💻', '👕', '⌚']
 
-const stats = [
-  { num: '16+', label: '精选商品' },
-  { num: '4', label: '商品分类' },
+const stats = ref([
+  { num: '0', label: '精选商品' },
+  { num: '0', label: '商品分类' },
   { num: 'AI', label: '智能推荐引擎' },
   { num: '24/7', label: 'AI 客服在线' }
-]
+])
 
 onMounted(async () => {
   try {
@@ -114,8 +115,19 @@ onMounted(async () => {
       productsAPI.getList({ page_size: 8, sort: 'sales' }),
       productsAPI.getCategories()
     ])
-    featuredProducts.value = prodRes.data || []
+    const prodData = prodRes.data
+    // 兼容数组或 { items, total } 两种返回结构
+    const list = Array.isArray(prodData) ? prodData : (prodData?.items || prodData?.list || [])
+    featuredProducts.value = list
+    productCount.value = prodData?.total ?? list.length
     categories.value = catRes.data || []
+    // 动态更新统计数据
+    stats.value = [
+      { num: String(productCount.value || 0), label: '精选商品' },
+      { num: String(categories.value.length), label: '商品分类' },
+      { num: 'AI', label: '智能推荐引擎' },
+      { num: '24/7', label: 'AI 客服在线' }
+    ]
   } catch (e) {
     console.error('Failed to load home data:', e)
   } finally {
@@ -193,7 +205,15 @@ onMounted(async () => {
   animation: float 6s ease-in-out infinite;
 }
 .hero-emoji { font-size: 80px; }
-.floating-card {
+.card-emoji {
+    font-size: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+  .floating-card {
   position: absolute;
   width: 80px;
   height: 80px;

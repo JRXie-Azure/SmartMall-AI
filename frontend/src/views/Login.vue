@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="auth-page">
     <div class="auth-card card">
       <h1 class="auth-title">登录 SmartMall-AI</h1>
@@ -21,23 +21,13 @@
         <router-link to="/register">立即注册</router-link>
       </div>
 
-      <div class="demo-account">
-        <el-divider>测试账号</el-divider>
-        <div class="demo-row">
-          <el-tag>管理员</el-tag>
-          <code>admin</code> / <code>admin123</code>
-        </div>
-        <div class="demo-row">
-          <el-tag type="success">普通用户</el-tag>
-          <code>demo</code> / <code>demo123</code>
-        </div>
-      </div>
+
     </div>
   </div>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCartStore } from '../stores/cart'
@@ -48,6 +38,7 @@ const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 const cart = useCartStore()
+const formRef = ref()
 
 const form = reactive({ username: '', password: '' })
 const rules = {
@@ -56,12 +47,16 @@ const rules = {
 }
 
 async function handleLogin() {
-  const ok = await auth.login(form.username, form.password)
-  if (ok) {
-    ElMessage.success('登录成功！')
-    cart.fetchCart()
-    router.push(route.query.redirect || '/')
-  }
+  if (!formRef.value) return
+  await formRef.value.validate(async (valid) => {
+    if (!valid) return
+    const ok = await auth.login(form.username, form.password)
+    if (ok) {
+      ElMessage.success('登录成功！')
+      cart.fetchCart()
+      router.push(route.query.redirect || '/')
+    }
+  })
 }
 </script>
 
@@ -82,19 +77,5 @@ async function handleLogin() {
 .auth-sub { font-size: 14px; color: var(--text-light); text-align: center; margin-bottom: 32px; }
 .auth-footer { text-align: center; margin-top: 20px; font-size: 13px; color: var(--text-light); }
 .auth-footer a { color: var(--primary); font-weight: 600; margin-left: 4px; }
-.demo-account { margin-top: 24px; }
-.demo-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  margin-bottom: 8px;
-  color: var(--text-light);
-}
-.demo-row code {
-  background: #F0F0F5;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-}
+
 </style>

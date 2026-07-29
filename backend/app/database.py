@@ -1,4 +1,4 @@
-"""
+﻿"""
 SmartMall-AI 数据库配置
 支持 MySQL (生产) + SQLite (开发 fallback) + Redis 缓存
 """
@@ -49,28 +49,33 @@ def get_db():
 # ====== Redis 缓存 (可选，没有 Redis 时自动降级) ======
 
 _redis_client = None
+_redis_checked = False  # 是否已检查过 Redis 连接
 _memory_cache: dict[str, tuple[Any, float]] = {}  # fallback: (value, expire_timestamp)
 
 
 def get_redis():
-    """获取 Redis 客户端，不可用时返回 None"""
-    global _redis_client
+    """获取 Redis 客户端，不可用时返回 None（连接失败后会记住状态，避免重复超时）"""
+    global _redis_client, _redis_checked
     if not settings.has_redis:
         return None
-    if _redis_client is None:
-        try:
-            import redis
-            _redis_client = redis.from_url(
-                settings.REDIS_URL,
-                decode_responses=True,
-                socket_connect_timeout=3,
-                socket_timeout=3,
-            )
-            _redis_client.ping()
-            logger.info("Redis 连接成功")
-        except Exception as e:
-            logger.warning(f"Redis 连接失败，降级为内存缓存: {e}")
-            _redis_client = None
+    if _redis_client is not None:
+        return _redis_client
+    if _redis_checked:
+        return None  # 之前已检查过且失败，直接返回 None
+    try:
+        import redis
+        _redis_client = redis.from_url(
+            settings.REDIS_URL,
+            decode_responses=True,
+            socket_connect_timeout=1,
+            socket_timeout=1,
+        )
+        _redis_client.ping()
+        logger.info("Redis 连接成功")
+    except Exception as e:
+        logger.warning(f"Redis 连接失败，降级为内存缓存: {e}")
+        _redis_client = None
+        _redis_checked = True
     return _redis_client
 
 
@@ -131,11 +136,19 @@ def cache_delete_pattern(pattern: str):
     r = get_redis()
     if r:
         try:
-            keys = r.keys(pattern)
-            if keys:
-                r.delete(*keys)
+            cursor = 0
+            while True:
+                cursor, keys = r.scan(cursor=cursor, match=pattern, count=100)
+                if keys:
+                    r.delete(*keys)
+                if cursor == 0:
+                    break
         except Exception:
             pass
+    else:
+        # 内存缓存降级时也清除匹配的 key
+        global _memory_cache
+        _memory_cache = {k: v for k, v in _memory_cache.items() if not k.startswith(pattern.replace("*", ""))}
 
 
 def cached(key_prefix: str, expire: int = 300):
@@ -157,3 +170,4 @@ def cached(key_prefix: str, expire: int = 300):
             return result
         return wrapper
     return decorator
+

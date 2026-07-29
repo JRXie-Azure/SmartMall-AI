@@ -1,0 +1,51 @@
+# ====== SmartMall-AI 开发环境 Docker Compose ======
+# 仅启动 MySQL + Redis, 后端/前端在本地运行
+# 使用: docker-compose -f docker-compose.dev.yml up -d
+# 停止: docker-compose -f docker-compose.dev.yml down
+version: "3.8"
+
+services:
+  # ====== MySQL 数据库 ======
+  mysql:
+    image: mysql:8.0
+    container_name: smartmall-mysql-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: smartmall123
+      MYSQL_DATABASE: smartmall
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ====== Redis 缓存 ======
+  redis:
+    image: redis:7-alpine
+    container_name: smartmall-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # 持久化配置: 每60秒至少1次写入时保存
+    command: redis-server --save 60 1 --loglevel warning
+
+volumes:
+  mysql_dev_data:
+  redis_dev_data:

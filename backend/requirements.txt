@@ -12,7 +12,9 @@ alembic==1.13.3         # 数据库迁移
 
 # ====== 认证 ======
 python-jose[cryptography]==3.3.0
-passlib[bcrypt]==4.0.1
+cryptography==43.0.1        # JWT/加密底层库 (python-jose 依赖)
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.3
 
 # ====== 数据验证 ======
 pydantic[email]==2.9.2
@@ -22,19 +24,34 @@ python-dotenv==1.0.1
 
 # ====== AI / LLM ======
 httpx==0.27.2            # 异步 HTTP (调用 LLM API)
-langchain==0.3.0         # LLM 应用框架 (可选)
-langchain-openai==0.2.0  # OpenAI/DeepSeek 兼容
+openai==1.51.0           # OpenAI/DeepSeek 兼容客户端
 
-# ====== RAG 向量检索 ======
-sentence-transformers==3.1.1  # 文本向量化
-chromadb==0.5.13              # 向量数据库
+# ====== RAG 向量检索 (Python 3.13 下需自行安装预编译版本) ======
+# sentence-transformers==3.1.1  # 文本向量化
+# chromadb==0.5.13              # 向量数据库
 
 # ====== 推荐算法 ======
-numpy==1.26.4
-scikit-learn==1.5.2
+numpy==2.1.0
+scikit-learn==1.6.1
 
 # ====== 搜索引擎 (可选) ======
 # meilisearch==0.31.0
 
 # ====== 工具 ======
 python-dotenv==1.0.1
+
+# ====== 对象存储 (S3兼容: 阿里云OSS/腾讯云COS/MinIO/AWS) ======
+boto3==1.35.0
+
+# ====== 图片处理 ======
+Pillow==11.0.0              # 图片压缩 / 缩略图生成 (支持 Python 3.13)
+
+# ====== 支付 (可选, 按需安装) ======
+wechatpayv3                 # 微信支付 V3 SDK (可选)
+alipay-sdk-python           # 支付宝官方 SDK (可选)
+
+# ====== 测试 ======
+pytest==9.1.1
+
+pytest-cov
+

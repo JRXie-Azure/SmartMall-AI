@@ -118,7 +118,7 @@ async def chat_completion(
         "model": settings.llm_model,
         "messages": [{"role": "system", "content": SYSTEM_PROMPT}] + messages,
         "temperature": temperature,
-        "max_tokens": 2000,
+        "max_tokens": 4096,
     }
     if use_tools:
         payload["tools"] = TOOLS
@@ -134,8 +134,13 @@ async def chat_completion(
             resp.raise_for_status()
             data = resp.json()
             choice = data["choices"][0]["message"]
+            content = choice.get("content", "") or ""
+            # V4 推理模型有时会在 content 里返回 DSML 格式的工具调用指令，
+            # 过滤掉这种非自然语言内容，避免暴露给用户
+            if "<｜｜DSML｜｜" in content:
+                content = ""
             return {
-                "content": choice.get("content", ""),
+                "content": content,
                 "tool_calls": choice.get("tool_calls", []),
             }
     except httpx.HTTPStatusError as e:
@@ -167,7 +172,7 @@ async def chat_completion_stream(
         "model": settings.llm_model,
         "messages": [{"role": "system", "content": SYSTEM_PROMPT}] + messages,
         "temperature": temperature,
-        "max_tokens": 2000,
+        "max_tokens": 4096,
         "stream": True,
     }
     if use_tools:
@@ -214,9 +219,18 @@ async def execute_tool_call(
     from sqlalchemy.orm import Session
 
     if tool_name == "search_products":
+        from sqlalchemy import or_, cast, String
         query = db.query(Product).filter(Product.is_active == True, Product.audit_status == "approved")
         if kw := arguments.get("keyword"):
-            query = query.filter(Product.name.ilike(f"%{kw}%"))
+            # 同时搜索名称、描述、品牌、标签 (tags 以 JSON 字符串形式匹配)
+            query = query.filter(
+                or_(
+                    Product.name.ilike(f"%{kw}%"),
+                    Product.description.ilike(f"%{kw}%"),
+                    Product.brand.ilike(f"%{kw}%"),
+                    cast(Product.tags, String).ilike(f"%{kw}%"),
+                )
+            )
         if brand := arguments.get("brand"):
             query = query.filter(Product.brand.ilike(f"%{brand}%"))
         if min_p := arguments.get("min_price"):
@@ -234,6 +248,12 @@ async def execute_tool_call(
             query = query.order_by(Product.sales.desc())
         limit = arguments.get("limit", 5)
         products = query.limit(limit).all()
+        if not products:
+            # 关键词没匹配到时，返回热销商品作为推荐
+            products = db.query(Product).filter(
+                Product.is_active == True,
+                Product.audit_status == "approved"
+            ).order_by(Product.sales.desc()).limit(limit).all()
         if not products:
             return "未找到匹配的商品。"
         return json.dumps([{
@@ -258,9 +278,9 @@ async def execute_tool_call(
         }, ensure_ascii=False)
 
     elif tool_name == "semantic_search":
-        # RAG 语义搜索
+        # RAG 语义搜索 (TF-IDF + 余弦相似度)
         from app.services.rag_service import rag_search
-        results = rag_search(arguments.get("query", ""), top_k=arguments.get("limit", 5))
+        results = rag_search(arguments.get("query", ""), top_k=arguments.get("limit", 5), db=db)
         if not results:
             return "语义搜索未找到相关商品。"
         return json.dumps(results, ensure_ascii=False)

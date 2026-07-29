@@ -4,7 +4,7 @@
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, Text
 from app.database import get_db
 from app.models import Product, Category, SearchHistory, User
 from app.schemas import ProductOut, ProductListOut
@@ -51,7 +51,7 @@ def search(
     conditions.append(Product.description.ilike(f"%{keyword}%"))
     conditions.append(Product.brand.ilike(f"%{keyword}%"))
     # 标签搜索
-    conditions.append(Product.tags.cast(__import__('sqlalchemy').Text).ilike(f"%{keyword}%"))
+    conditions.append(Product.tags.cast(Text).ilike(f"%{keyword}%"))
     query = query.filter(or_(*conditions))
 
     # 筛选
