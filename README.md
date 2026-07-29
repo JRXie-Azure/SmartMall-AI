@@ -13,15 +13,13 @@ SmartMall-AI 是一个面向求职展示的 **AI 赋能电商全栈项目**，�
 
 ## 📸 项目截图
 
-| 首页 Hero + AI推荐 | 商品搜索与筛选 |
+| 首页 Hero + AI推荐 | 商品详情页 |
 |:---:|:---:|
-| ![首页](docs/screenshots/home.png) | ![商品](docs/screenshots/products.png) |
+| ![首页](docs/screenshots/home.png) | ![商品详情](docs/screenshots/product_detail.png) |
 
-| AI 对话助手 | 管理后台数据面板 |
+| 管理后台仪表盘 | AI 智能分析 |
 |:---:|:---:|
-| ![AI对话](docs/screenshots/ai-chat.png) | ![管理后台](docs/screenshots/admin.png) |
-
-> 📌 截图需手动补充：运行项目后截屏放入 `docs/screenshots/` 目录
+| ![管理后台](docs/screenshots/admin.png) | ![AI分析](docs/screenshots/ai_analysis.png) |
 
 ---
 
