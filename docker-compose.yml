@@ -1,11 +1,10 @@
 # ====== SmartMall-AI Docker Compose (生产环境) ======
 # 一键启动: docker-compose up -d --build
-# 包含: MySQL + Redis + Backend(FastAPI) + Frontend(Vue) + Nginx(HTTPS)
+# 包含: MySQL + Redis + Backend(Java Spring Boot) + Nginx(HTTPS)
 #
 # 部署前请确认:
-#   1. backend/.env 已配置 (参考 backend/.env.example)
+#   1. 环境变量已配置 (DEEPSEEK_API_KEY, SECRET_KEY 等)
 #   2. nginx/certs/ 下有 fullchain.pem 和 privkey.pem (见 nginx/README.md)
-#   3. certs/ 下有支付证书 (微信/支付宝)
 
 version: "3.8"
 
@@ -47,9 +46,11 @@ services:
       timeout: 5s
       retries: 5
 
-  # ====== FastAPI 后端 ======
+  # ====== Java Spring Boot 后端 ======
   backend:
-    build: ./backend
+    build:
+      context: ./backend-java
+      dockerfile: Dockerfile
     container_name: smartmall-backend
     restart: always
     depends_on:
@@ -57,41 +58,24 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    # 加载 .env 环境变量文件
-    env_file:
-      - ./backend/.env
     environment:
-      # 这些值会被 .env 中同名变量覆盖；这里给出安全默认值兜底
-      DATABASE_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD:-smartmall123}@mysql:3306/${MYSQL_DATABASE:-smartmall}?charset=utf8mb4
-      REDIS_URL: redis://redis:6379/0
+      SPRING_PROFILES_ACTIVE: mysql
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DB: ${MYSQL_DATABASE:-smartmall}
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD:-smartmall123}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
-      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-v4-flash}
-      SECRET_KEY: ${SECRET_KEY:?请在.env中设置SECRET_KEY}
-      RATE_LIMIT_ENABLED: "true"
-      # 生产环境强制关闭 DEBUG
-      DEBUG: "false"
-      ENV: "production"
+      SECRET_KEY: ${SECRET_KEY:-smartmall-dev-secret-key-change-me-in-production}
+      SERVER_PORT: "8000"
     ports:
-      - "8001:8001"
+      - "8000:8000"
     volumes:
       - uploads_data:/app/uploads
-      # 支付证书目录挂载 (只读)
-      - ./certs:/app/certs:ro
-    networks:
-      - smartmall-net
-
-  # ====== 前端构建服务 (可选, 多阶段构建产物挂载到 nginx) ======
-  # 说明: 此服务仅用于构建前端静态文件, build 完成后即退出,
-  #       产物通过命名卷 frontend_dist 共享给 nginx 容器提供静态服务。
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: smartmall-frontend-builder
-    # 仅做构建, 不长期运行
-    command: ["echo", "frontend build complete"]
-    volumes:
-      - frontend_dist:/usr/share/nginx/html
+      # 前端静态文件（Java 后端同源托管）
+      - ./backend/static:/app/static:ro
     networks:
       - smartmall-net
 
@@ -102,16 +86,12 @@ services:
     restart: always
     depends_on:
       - backend
-      - frontend
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      # SSL 证书目录挂载 (只读)
       - ./nginx/certs:/etc/nginx/certs:ro
-      # 前端构建产物目录 (由 frontend 服务产出)
-      - frontend_dist:/usr/share/nginx/html:ro
     networks:
       - smartmall-net
 
@@ -119,7 +99,6 @@ volumes:
   mysql_data:
   redis_data:
   uploads_data:
-  frontend_dist:
 
 networks:
   smartmall-net:
