@@ -652,6 +652,13 @@ async function doAuth() {
       G.showAuth = false;
       G.authForm = {username:'', email:'', password:''};
       ElementPlus.ElMessage.success('登录成功');
+      // 登录成功后立即获取用户角色，确保管理后台权限判断正确
+      try {
+        const userInfo = await api('/api/auth/me');
+        if (userInfo && userInfo.role === 'admin') {
+            ElementPlus.ElMessage.success('\u7BA1\u7406\u5458\u767B\u5F55\u6210\u529F');
+          }
+      } catch(e) { console.error('登录后获取用户角色失败', e); }
       // 加载购物车，失败也不影响登录状态
       try { await G.loadCart(); } catch(e) { console.log('登录后加载购物车失败，稍后重试', e); }
     } else {
@@ -1401,7 +1408,7 @@ const AdminPage = {template:`
   </div>
   <div class="amn">
     <!-- 权限检查提示 -->
-    <div v-if="authChecked && !isAdmin" style="position:fixed;inset:0;background:rgba(255,255,255,.95);z-index:3000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px">
+    <div v-if="authChecked && !isAdminUser" style="position:fixed;inset:0;background:rgba(255,255,255,.95);z-index:3000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px">
       <div style="width:80px;height:80px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;color:#ef4444;font-size:36px"><i class="fas fa-lock"></i></div>
       <h2 style="margin:0;color:#1f2937">需要管理员权限</h2>
       <p style="color:#6b7280;margin:0">当前账号（{{G.currentUser || '未知'}}）不是管理员，无法访问后台管理功能</p>
@@ -1803,6 +1810,7 @@ setup() {
   const currentUserRole = ref('');
   const isAdmin = computed(() => currentUserRole.value === 'admin');
   const authChecked = ref(false);
+  const isAdminUser = ref(false);
 
   function fmtNum(n){ if(!n) return '0'; return Number(n).toLocaleString('zh-CN',{maximumFractionDigits:0}); }
 
@@ -1983,7 +1991,8 @@ setup() {
       }
     }catch(e){ console.error('获取用户信息失败', e); }
     authChecked.value = true;
-    return currentUserRole.value === 'admin';
+    isAdminUser.value = (currentUserRole.value === 'admin');
+    return isAdminUser.value;
   }
 
   onMounted(async ()=>{
@@ -2004,12 +2013,29 @@ setup() {
     await loadUsers();
   });
 
+  // Re-check admin auth when login state changes (e.g. after user logs in from the admin page)
+  watch(() => G.isLoggedIn, async (loggedIn) => {
+    if (loggedIn) {
+      const ok = await checkAdminAuth();
+      if (ok) {
+        await loadCats();
+        await loadDashboard();
+        await loadProducts();
+        await loadOrders();
+        await loadUsers();
+      }
+    } else {
+      isAdminUser.value = false;
+      currentUserRole.value = '';
+    }
+  });
+
   watch(menu, (m)=>{ if(m==='dash') loadDashboard(); else if(m==='prod') loadProducts(); else if(m==='ord') loadOrders(); else if(m==='usr') loadUsers(); else if(m==='ai') loadAI(); else if(m==='mkt'){ loadCamps(); loadBanners(); } else if(m==='set') loadConfigs(); });
   watch(prodPage, loadProducts);
   watch(ordPage, loadOrders);
   watch(usrPage, loadUsers);
 
-  return {menu, lc, pc, stats, aOrders, topProducts, fmtNum, searchKey, doSearch, G,
+  return {menu, lc, pc, stats, aOrders, topProducts, fmtNum, searchKey, doSearch, G, authChecked, isAdminUser, checkAdminAuth,
     prodList, prodPage, prodPageSize, prodTotal, showProdForm, prodForm, openProdForm, onImageUpload, saveProd, delProd, saving, categories,
     ordList, ordPage, ordPageSize, ordTotal, updOrdStatus, stMap,
     usrList, usrPage, usrPageSize, usrTotal, toggleUser, setRole, imgErr,

@@ -1,0 +1,206 @@
+Python: http://127.0.0.1:8000
+Java  : http://127.0.0.1:8001
+
+[OK ] 登录 user  zhangwei                   py=有 java=有
+[OK ] 登录 admin admin                      py=有 java=有
+
+   用例                      状态码           结果
+------------------------------------------------------------------------------
+v  健康检查                    200 / 200     一致
+X  商品列表-默认                 200 / 200     12 处差异
+X  商品列表-价格升序               200 / 200     12 处差异
+X  商品列表-销量降序               200 / 200     12 处差异
+v  商品列表-分类筛选               200 / 200     一致
+v  商品列表-价格区间               200 / 200     一致
+v  商品列表-关键词                200 / 200     一致
+v  商品列表-推荐位                200 / 200     一致
+v  商品详情                    200 / 200     一致
+v  商品详情-不存在                404 / 404     一致
+v  商品分类                    200 / 200     一致
+v  商品评价                    200 / 200     一致
+v  搜索-关键词                  200 / 200     一致
+v  搜索-关键词2                 200 / 200     一致
+v  搜索-相关度排序                200 / 200     一致
+X  搜索建议                    200 / 200     9 处差异
+v  热门搜索                    200 / 200     一致
+X  品牌列表                    200 / 200     12 处差异
+v  我的信息                    200 / 200     一致
+v  购物车                     200 / 200     一致
+v  购物车数量                   200 / 200     一致
+X  收藏列表                    404 / 500     1 处差异
+v  订单列表                    200 / 200     一致
+v  订单统计                    200 / 200     一致
+X  未登录取购物车                 401 / 401     1 处差异
+v  非法 Token 商品详情           200 / 200     一致
+X  管理端-统计                  200 / 200     7 处差异
+X  管理端-商品                  200 / 200     13 处差异
+v  管理端-用户                  200 / 200     一致
+v  管理端-订单                  200 / 200     一致
+v  管理端-越权(普通用户)            403 / 403     一致
+v  AI 状态                   200 / 200     一致
+v  AI 推荐                   200 / 200     一致
+v  RAG 检索                  200 / 200     一致
+v  RAG 检索-空查询              400 / 400     一致
+------------------------------------------------------------------------------
+通过 26/35，差异 9
+
+==============================================================================
+差异明细 (左=Python 右=Java)
+==============================================================================
+
+### 商品列表-默认  [GET /api/products]
+  $.items[1].brand
+      py   = 'Adidas'
+      java = 'Lenovo'
+  $.items[1].category_id
+      py   = 1
+      java = 4
+  $.items[1].description
+      py   = 'Boost中底科技，回弹性能卓越。Primeknit编织鞋面，包裹性极佳，跑步首选。'
+      java = '14英寸商务旗舰，碳纤维机身，Intel酷睿Ultra7，军标认证。'
+  $.items[1].id
+      py   = 2
+      java = 26
+  $.items[1].image
+      py   = 'https://placehold.co/400x400/2563EB/ffffff?text=Adidas%0AAdidas+Ultra+Boost+22&font=monts...
+      java = 'https://placehold.co/400x400/4F46E5/ffffff?text=Lenovo%0ALenovo+ThinkPad+X1+Carbon&font=m...
+  $.items[1].images[0]
+      py   = 'https://placehold.co/400x400/2563EB/ffffff?text=Adidas%0AAdidas+Ultra+Boost+22&font=monts...
+      java = 'https://placehold.co/400x400/4F46E5/ffffff?text=Lenovo%0ALenovo+ThinkPad+X1+Carbon&font=m...
+  ... 另有 6 处，加 --verbose 查看
+
+### 商品列表-价格升序  [GET /api/products]
+  $.items[1].brand
+      py   = 'Vans'
+      java = 'Adidas'
+  $.items[1].category_id
+      py   = 2
+      java = 5
+  $.items[1].created_at
+      py   = '2026-06-10T14:01:31.114196'
+      java = '2026-07-14T14:01:31.114196'
+  $.items[1].description
+      py   = '经典侧边条纹板鞋，耐磨华夫底，街头文化标志性鞋款。'
+      java = '经典三条纹运动夹克，Regular Fit，全拉链设计，运动休闲。'
+  $.items[1].id
+      py   = 11
+      java = 32
+  $.items[1].image
+      py   = 'https://placehold.co/400x400/0D9488/ffffff?text=Vans%0AVans+Old+Skool&font=montserrat'
+      java = 'https://placehold.co/400x400/DB2777/ffffff?text=Adidas%0AAdidas+Track+Jacket&font=montser...
+  ... 另有 6 处，加 --verbose 查看
+
+### 商品列表-销量降序  [GET /api/products]
+  $.items[2].brand
+      py   = 'Dr. Martens'
+      java = 'Huawei'
+  $.items[2].category_id
+      py   = 2
+      java = 3
+  $.items[2].created_at
+      py   = '2026-07-03T14:01:31.114196'
+      java = '2026-06-30T14:01:31.114196'
+  $.items[2].description
+      py   = '经典8孔马丁靴，Goodyear缝制工艺，耐穿耐看，英伦风必备。'
+      java = '麒麟9000S芯片，卫星通话，昆仑玻璃，XMAGE影像。'
+  $.items[2].id
+      py   = 12
+      java = 21
+  $.items[2].image
+      py   = 'https://placehold.co/400x400/0D9488/ffffff?text=Dr.+Martens%0ADr.+Martens+1460&font=monts...
+      java = 'https://placehold.co/400x400/7C3AED/ffffff?text=Huawei%0AHuawei+Mate+60+Pro&font=montserr...
+  ... 另有 6 处，加 --verbose 查看
+
+### 搜索建议  [GET /api/search/suggestions]
+  $.brands[0]
+      py   = 'Nike'
+      java = 'Li-Ning'
+  $.brands[1]
+      py   = 'Li-Ning'
+      java = 'Nike'
+  $.products[0]
+      py   = 'Nike Air Max 270'
+      java = 'DJI Mini 4 Pro'
+  $.products[1]
+      py   = 'Li-Ning Way of Wade 10'
+      java = 'Estée Lauder Advanced Night Repair'
+  $.products[2]
+      py   = 'DJI Mini 4 Pro'
+      java = 'Li-Ning Way of Wade 10'
+  $.products[3]
+      py   = 'Uniqlo Down Jacket'
+      java = 'Nest Learning Thermostat'
+  ... 另有 3 处，加 --verbose 查看
+
+### 品牌列表  [GET /api/search/brands]
+  $[1].name
+      py   = 'Xiaomi'
+      java = 'Adidas'
+  $[3].name
+      py   = 'Adidas'
+      java = 'Xiaomi'
+  $[4].name
+      py   = 'Zara'
+      java = 'ASUS'
+  $[5].name
+      py   = 'Vans'
+      java = 'Asics'
+  $[6].name
+      py   = 'Uniqlo'
+      java = 'Clarks'
+  $[7].name
+      py   = 'Under Armour'
+      java = 'Converse'
+  ... 另有 6 处，加 --verbose 查看
+
+### 收藏列表  [GET /api/products/favorites/list]
+  $.__status__
+      py   = 404
+      java = 500
+
+### 未登录取购物车  [GET /api/cart/items]
+  $.detail
+      py   = 'Not authenticated'
+      java = '无效的认证凭证'
+
+### 管理端-统计  [GET /api/admin/stats]
+  $.top_products[3].name
+      py   = 'Asics Gel-Kayano 29'
+      java = 'Uniqlo Down Jacket'
+  $.top_products[4].name
+      py   = 'Converse Chuck 70'
+      java = 'Dell XPS 13 Plus'
+  $.top_products[5].name
+      py   = 'iPad Air'
+      java = 'Herschel Little America'
+  $.top_products[6].name
+      py   = 'MacBook Air M3'
+      java = 'iPad Air'
+  $.top_products[7].name
+      py   = 'Dell XPS 13 Plus'
+      java = 'MacBook Air M3'
+  $.top_products[8].name
+      py   = 'Uniqlo Down Jacket'
+      java = 'Estée Lauder Advanced Night Repair'
+  ... 另有 1 处，加 --verbose 查看
+
+### 管理端-商品  [GET /api/admin/products]
+  $.items[0].updated_at
+      py   = None
+      java = '<缺失>'
+  $.items[1].updated_at
+      py   = None
+      java = '<缺失>'
+  $.items[2].brand
+      py   = 'Apple'
+      java = 'Lenovo'
+  $.items[2].category_id
+      py   = 3
+      java = 4
+  $.items[2].description
+      py   = 'M1芯片，10.9英寸全面屏，支持Apple Pencil，学习创作利器。'
+      java = '14英寸商务旗舰，碳纤维机身，Intel酷睿Ultra7，军标认证。'
+  $.items[2].id
+      py   = 19
+      java = 26
+  ... 另有 7 处，加 --verbose 查看

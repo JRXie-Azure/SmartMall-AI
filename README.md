@@ -1,17 +1,16 @@
-﻿# SmartMall-AI — AI 驱动的智能电商全栈平台
+# SmartMall-AI — AI 驱动的智能电商全栈平台
 
-[![Python](https://img.shields.io/badge/Python-3.13-blue)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)](https://fastapi.tiangolo.com/)
+[![Java](https://img.shields.io/badge/Java-17-orange)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.2-green)](https://spring.io/projects/spring-boot)
 [![Vue](https://img.shields.io/badge/Vue-3.5-brightgreen)](https://vuejs.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)](https://www.docker.com/)
-[![Tests](https://img.shields.io/badge/Tests-30%20passed-brightgreen)]()
 [![License](https://img.shields.io/badge/License-MIT-yellow)](./LICENSE)
 
-SmartMall-AI 是一个面向求职展示的 **AI 赋能电商全栈项目**，融合了 LLM 对话、RAG 商品知识库、协同过滤推荐、WebSocket 实时客服、API 限流和 Docker 容器化部署。
+SmartMall-AI 是一个面向求职展示的 **AI 赋能电商全栈项目**，后端采用 Java 17 + Spring Boot 3.3.2，融合了 LLM 对话、RAG 商品知识库、协同过滤推荐、WebSocket 实时客服、API 限流和 Docker 容器化部署。
 
 ---
 
-## 📸 项目截图
+## 项目截图
 
 | 首页 Hero + AI推荐 | 商品详情页 |
 |:---:|:---:|
@@ -23,204 +22,210 @@ SmartMall-AI 是一个面向求职展示的 **AI 赋能电商全栈项目**，�
 
 ---
 
-## 🎯 核心亮点
+## 核心亮点
 
 | 维度 | 能力 |
 |------|------|
-| **AI 对话** | DeepSeek V4 LLM + Function Calling 工具调用，SSE 流式响应 |
-| **RAG 知识库** | TF-IDF 向量化 + 余弦相似度语义检索（scikit-learn） |
+| **AI 对话** | DeepSeek LLM + Function Calling 工具调用，SSE 流式响应 |
+| **RAG 知识库** | 手写 TF-IDF 向量化 + 余弦相似度语义检索（纯 Java 实现） |
 | **智能推荐** | 协同过滤（用户行为）+ LLM 推理双层推荐 |
 | **实时客服** | WebSocket 双向通信，AI 先接 → 人工接管 |
 | **API 限流** | Redis 滑动窗口限流（AI 接口独立限流），内存降级 |
-| **数据库迁移** | Alembic 版本管理，支持 SQLite → MySQL 无缝切换 |
+| **数据库迁移** | Flyway 版本管理，支持 H2 → MySQL 无缝切换 |
 | **全文搜索** | 标题+描述+品牌+标签多字段搜索 |
-| **权限体系** | JWT 认证 + RBAC 三角色（买家/商家/管理员） |
-| **容器化** | Docker Compose 一键部署（FastAPI + MySQL + Redis + Nginx） |
-| **测试覆盖** | pytest 30 个测试（认证/商品/AI/RAG/推荐/限流/迁移/部署/评价） |
+| **权限体系** | Spring Security + JWT 认证 + RBAC 三角色（买家/商家/管理员） |
+| **容器化** | Docker Compose 一键部署（Spring Boot + MySQL + Redis + Nginx） |
 
 ---
 
-## 🏗 系统架构
+## 系统架构
 
-```mermaid
-graph TB
-    subgraph 前端
-        Vue["Vue 3 + Vite + Element Plus :5173"]
-        Single["单文件应用 (CDN) :8001"]
-    end
-
-    subgraph "后端 FastAPI :8001"
-        MW["限流中间件<br/>Redis 滑动窗口 / 内存降级"]
-        Auth["JWT + RBAC 认证<br/>买家/商家/管理员"]
-        Router["API 路由层<br/>商品/订单/AI/管理后台"]
-    end
-
-    subgraph "AI 服务层"
-        LLM["DeepSeek V4 LLM<br/>Function Calling + SSE"]
-        RAG["RAG 语义搜索<br/>TF-IDF + 余弦相似度"]
-        CF["协同过滤推荐<br/>User-Based CF"]
-        WS["WebSocket 客服<br/>AI 接入 → 人工接管"]
-    end
-
-    subgraph "数据层"
-        DB[("MySQL 8 / SQLite<br/>13 张表 + Alembic 迁移")]
-        Cache[("Redis<br/>缓存 + 限流计数")]
-    end
-
-    Vue -->|"HTTP / SSE"| Router
-    Single -->|"HTTP"| Router
-    Router --> MW
-    MW --> Auth
-    Auth --> DB
-    Router --> LLM
-    Router --> RAG
-    Router --> CF
-    Router --> WS
-    RAG --> DB
-    CF --> DB
-    MW --> Cache
+```
+┌─────────────────────────────────────────────────────┐
+│                    前端 (Vue 3 CDN)                   │
+│          index.html  ·  http://localhost:8000         │
+└──────────────────────┬──────────────────────────────┘
+                       │ HTTP / SSE / WebSocket
+                       ▼
+┌─────────────────────────────────────────────────────┐
+│              Spring Boot 3.3.2 :8000                  │
+│  ┌──────────┐  ┌───────────┐  ┌──────────────────┐  │
+│  │ Security  │  │ RateLimit │  │   Controllers    │  │
+│  │ JWT+RBAC  │  │ Redis/内存 │  │ 商品/订单/AI/管理 │  │
+│  └──────────┘  └───────────┘  └────────┬─────────┘  │
+│                                         │             │
+│  ┌──────────────────────────────────────▼──────────┐ │
+│  │              Service Layer                       │ │
+│  │  LlmService · RagService · RecommendationService│ │
+│  └──────────────────────────────────────┬──────────┘ │
+│                                         │             │
+│  ┌─────────────────┐  ┌────────────────▼──────────┐ │
+│  │  Spring Data JPA │  │    WebSocket Handler      │ │
+│  │  Hibernate       │  │    实时客服                │ │
+│  └────────┬────────┘  └───────────────────────────┘ │
+└───────────┼─────────────────────────────────────────┘
+            │
+            ▼
+┌───────────────────┐  ┌───────────────────┐
+│  H2 / MySQL       │  │  Redis            │
+│  13 张表 + Flyway  │  │  缓存 + 限流计数   │
+└───────────────────┘  └───────────────────┘
 ```
 
 ---
 
-## 🛠 技术栈
+## 技术栈
 
-```
-前端：Vue 3 + Vite + Element Plus + Pinia + Axios + ECharts
-后端：FastAPI + SQLAlchemy + Alembic + Pydantic
-AI  ：DeepSeek V4 + Function Calling + SSE 流式
-RAG ：scikit-learn TF-IDF + 余弦相似度
-推荐：scikit-learn 协同过滤（User-Based CF）
-限流：Redis 滑动窗口（内存降级 fallback）
-数据：MySQL 8 + Redis（SQLite 自动降级）
-实时：WebSocket (FastAPI 原生)
-部署：Docker + Docker Compose + Nginx
-测试：pytest + TestClient
-```
+### 后端（`backend-java/` 目录，Spring Boot 单体应用）
 
-### 技术选型理由
-
-| 选择 | 理由 |
+| 技术 | 用途 |
 |------|------|
-| **FastAPI** 而非 Django/Flask | 异步原生支持（SSE/WebSocket）、自动 OpenAPI 文档、Pydantic 类型安全 |
-| **TF-IDF** 而非 sentence-transformers | 零重型依赖、秒级启动、适配所有 Python 版本； sacrificing 精度换取部署友好 |
-| **DeepSeek** 而非 OpenAI | 国产大模型、API 兼容 OpenAI 格式、成本低；支持 Function Calling |
-| **SQLite 降级** 而非强制 MySQL | 零配置启动（面试官 clone 即跑）、演示友好；生产环境切 MySQL 仅改一行配置 |
-| **Redis 内存降级** | Redis 不可用时自动降级为内存限流，保证服务可用性 |
-| **Alembic** 而非 `create_all` | 版本化数据库迁移、支持回滚、生产环境标准实践 |
+| Java 17 | 运行时 |
+| Spring Boot 3.3.2 | 企业级 Web 框架（内嵌 Tomcat） |
+| Spring Data JPA / Hibernate | ORM 数据库操作 |
+| Flyway | 数据库迁移版本管理 |
+| Spring Security | 认证与授权框架 |
+| JJWT 0.12.6 | JWT 令牌生成与验证 |
+| BCryptPasswordEncoder | 密码哈希加密 |
+| WebSocket (Spring 原生) | 实时双向通信 |
+| H2 / MySQL 8 | 数据库（开发用 H2 零配置，生产用 MySQL） |
+| Redis (Lettuce) | 缓存 + 分布式限流（不可用时内存降级） |
+| Maven | 构建工具 |
+
+### 前端
+
+| 技术 | 用途 |
+|------|------|
+| Vue 3 | 响应式前端框架（CDN 引入） |
+| Vue Router 4 | 前端路由（Hash 模式） |
+| Element Plus | UI 组件库 |
+| ECharts | 数据可视化图表 |
+| Font Awesome | 图标库 |
+
+### AI 服务
+
+| 技术 | 用途 |
+|------|------|
+| DeepSeek LLM | 大语言模型（兼容 OpenAI API 格式） |
+| 手写 TF-IDF | 商品语义向量化（零重型依赖） |
+| 余弦相似度 | 语义检索匹配 |
+| User-Based 协同过滤 | 个性化推荐 |
 
 ---
 
-## 📦 项目结构
+## 项目结构
 
 ```
 SmartMall-AI/
-├── backend/
-│   ├── app/
-│   │   ├── main.py              # FastAPI 入口 + 中间件注册
-│   │   ├── config.py            # 多环境配置（MySQL/Redis/DeepSeek/限流）
-│   │   ├── models.py            # 13 张数据表 ORM 模型
-│   │   ├── schemas.py           # Pydantic 请求/响应模型
-│   │   ├── database.py          # MySQL + Redis 双数据源（缓存降级）
-│   │   ├── auth.py              # JWT + RBAC 认证授权
-│   │   ├── middleware.py        # 限流中间件 + 请求日志
-│   │   ├── seed.py              # 种子数据（45 商品 + 10 用户 + 95 订单 + 75 评价）
-│   │   ├── routers/
-│   │   │   ├── products.py      # 商品管理（CRUD + 缓存）
-│   │   │   ├── auth.py          # 注册/登录
-│   │   │   ├── cart.py          # 购物车
-│   │   │   ├── orders.py        # 订单状态机（6 状态）
-│   │   │   ├── ai.py            # LLM 对话 + RAG + SSE 流式
-│   │   │   ├── admin.py         # 管理后台（图表 + CRUD）
-│   │   │   ├── search.py        # 全文搜索引擎
-│   │   │   └── websocket.py     # WebSocket 实时客服
-│   │   └── services/
-│   │       ├── llm_service.py           # DeepSeek LLM 服务
-│   │       ├── rag_service.py           # RAG 向量检索
-│   │       └── recommendation_service.py # 协同过滤推荐
-│   ├── alembic/                 # Alembic 数据库迁移
-│   │   ├── env.py               # 迁移环境配置
-│   │   └── versions/            # 迁移脚本
-│   ├── tests/                   # pytest 测试套件（30 个测试）
-│   ├── alembic.ini              # Alembic 配置
-│   ├── Dockerfile
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── views/               # 10 个页面
-│   │   ├── components/          # 可复用组件
-│   │   ├── stores/              # Pinia 状态管理
-│   │   ├── api/                 # Axios API 封装
-│   │   └── router/              # Vue Router 路由
-│   └── Dockerfile
+├── backend-java/                # ★ Java 后端（主后端）
+│   ├── src/main/java/com/smartmall/
+│   │   ├── SmartMallApplication.java     # Spring Boot 启动类
+│   │   ├── config/
+│   │   │   ├── SecurityConfig.java        # Spring Security 配置
+│   │   │   ├── WebMvcConfig.java          # 静态资源 + 参数解析
+│   │   │   ├── WebSocketConfig.java       # WebSocket 配置
+│   │   │   ├── SmartMallProperties.java   # 业务配置绑定
+│   │   │   └── ProductImageSeeder.java    # 商品图片种子
+│   │   ├── controller/                    # REST API 控制器
+│   │   │   ├── AuthController.java         # 认证（注册/登录）
+│   │   │   ├── ProductController.java      # 商品管理
+│   │   │   ├── OrderController.java        # 订单管理
+│   │   │   ├── AiController.java           # AI 对话 + SSE 流式
+│   │   │   ├── SearchController.java       # 搜索
+│   │   │   ├── AdminController.java        # 管理后台
+│   │   │   ├── CartController.java         # 购物车
+│   │   │   ├── CouponController.java       # 优惠券
+│   │   │   ├── SkuController.java          # SKU 管理
+│   │   │   ├── BannerController.java       # Banner 管理
+│   │   │   ├── MarketingController.java    # 营销活动
+│   │   │   └── ...
+│   │   ├── entity/                         # JPA 实体（13 张表）
+│   │   ├── repository/                     # Spring Data JPA 接口
+│   │   ├── service/                        # 业务逻辑层
+│   │   │   ├── LlmService.java             # DeepSeek LLM 调用
+│   │   │   ├── RagService.java             # TF-IDF 语义搜索
+│   │   │   ├── RecommendationService.java  # 协同过滤推荐
+│   │   │   └── ToolExecutorService.java    # Function Calling 工具
+│   │   ├── security/                       # JWT + RBAC 安全模块
+│   │   ├── common/                         # 通用组件（限流/缓存/异常）
+│   │   ├── dto/                            # 请求/响应 DTO
+│   │   └── websocket/                      # WebSocket 客服
+│   ├── src/main/resources/
+│   │   ├── application.yml                 # 主配置文件
+│   │   └── db/migration/                   # Flyway 迁移脚本
+│   │       ├── h2/                         # H2 建表 SQL
+│   │       └── mysql/                      # MySQL 建表 SQL
+│   └── pom.xml                             # Maven 配置
+├── backend/                     # Python 后端（已弃用，保留参考）
+│   └── static/
+│       └── index.html            # 前端单文件应用（Java 后端共用）
+├── docs/
+│   └── screenshots/              # 项目截图
 ├── nginx/
-│   └── nginx.conf               # 反向代理 + HTTPS
-├── docker-compose.yml           # 生产环境一键启动全栈
-├── docker-compose.dev.yml       # 开发环境（仅 MySQL + Redis）
+│   └── nginx.conf                # 反向代理配置
+├── docker-compose.yml            # 生产环境一键启动
+├── docker-compose.dev.yml        # 开发环境（MySQL + Redis）
 └── README.md
 ```
 
 ---
 
-## 🚀 快速启动
+## 快速启动
 
-### 方式一：本地开发（SQLite，零依赖）
+### 方式一：本地开发（H2 内存库，零配置）
 
 ```bash
-# 后端
-cd backend
-python -m venv venv
-venv\Scripts\activate         # Windows
-pip install -r requirements.txt
-python -m app.seed            # 初始化数据（45 商品 + 10 用户 + 95 订单）
-uvicorn app.main:app --port 8001 --reload
+# 1. 进入 Java 后端目录
+cd backend-java
 
-# 运行测试
-venv\Scripts\python.exe -m pytest tests/ -v
+# 2. 编译打包（跳过测试）
+./mvnw clean package -DskipTests        # Linux/Mac
+mvnw.cmd clean package -DskipTests      # Windows
 
-# 前端
-cd frontend
-npm install
-npm run dev                   # http://localhost:5173
+# 3. 启动服务
+java -jar target/smartmall-ai.jar
+
+# 4. 访问
+# 前端：http://localhost:8001
+# 管理后台：http://localhost:8001/#/admin
 ```
 
-### 方式二：本地开发 + MySQL/Redis（Docker）
+> H2 文件库零配置启动，clone 即跑。Flyway 自动建表，ProductImageSeeder 自动填充数据。
+
+### 方式二：本地开发 + MySQL/Redis
 
 ```bash
 # 1. 启动 MySQL + Redis
 docker-compose -f docker-compose.dev.yml up -d
 
-# 2. 修改 backend/.env
-#    DATABASE_URL=mysql+pymysql://root:smartmall123@localhost:3306/smartmall?charset=utf8mb4
-#    REDIS_URL=redis://localhost:6379/0
+# 2. 以 MySQL profile 启动
+java -jar target/smartmall-ai.jar \
+  --spring.profiles.active=mysql \
+  --MYSQL_HOST=localhost \
+  --MYSQL_DB=smartmall \
+  --MYSQL_USER=root \
+  --MYSQL_PASSWORD=smartmall123
 
-# 3. 运行数据库迁移 + 填充数据
-cd backend
-alembic upgrade head           # 创建表结构
-python -m app.seed             # 填充演示数据
-
-# 4. 启动后端
-uvicorn app.main:app --port 8001 --reload
+# 3. 访问 http://localhost:8001
 ```
 
 ### 方式三：Docker Compose 全栈部署
 
 ```bash
 # 1. 配置环境变量
-cp backend/.env.example backend/.env
-# 编辑 .env，填入 DeepSeek API Key
+export DEEPSEEK_API_KEY=your_api_key_here
 
 # 2. 一键启动
 docker-compose up -d
 
 # 3. 访问
 # 前端：http://localhost
-# API 文档：http://localhost:8001/docs
+# API：http://localhost/api/health
 ```
 
 ---
 
-## 🔑 测试账号
+## 测试账号
 
 | 角色 | 用户名 | 密码 |
 |------|--------|------|
@@ -230,9 +235,9 @@ docker-compose up -d
 
 ---
 
-## 🎮 功能体验指南
+## 功能体验指南
 
-启动后端后（`uvicorn app.main:app --port 8001`），访问 `http://localhost:8001`：
+启动后端后，访问 `http://localhost:8001`：
 
 | 功能 | 体验方式 |
 |------|----------|
@@ -243,11 +248,10 @@ docker-compose up -d
 | **商品评价** | 点击任意商品 → 查看按品类定制的真实风格评价 |
 | **WebSocket 客服** | 点击客服按钮 → AI 先接，输入"转人工"切换人工客服 |
 | **API 限流** | 快速连续调用 AI 接口 → 触发 429 限流响应 |
-| **API 文档** | 访问 `/docs` → FastAPI 自动生成的交互式 Swagger 文档 |
 
 ---
 
-## 📡 API 概览
+## API 概览
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
@@ -256,11 +260,12 @@ docker-compose up -d
 | GET | `/api/products/{id}` | 商品详情 |
 | POST | `/api/auth/register` | 用户注册 |
 | POST | `/api/auth/login` | 用户登录（返回 JWT） |
+| GET | `/api/auth/me` | 获取当前用户信息（含角色） |
 | GET | `/api/cart/items` | 购物车列表 |
 | POST | `/api/cart/items` | 添加商品到购物车 |
 | GET | `/api/orders` | 订单历史 |
 | POST | `/api/orders` | 创建订单 |
-| POST | `/api/ai/chat` | AI 对话（SSE 流式） |
+| POST | `/api/ai/chat/stream` | AI 对话（SSE 流式） |
 | GET | `/api/ai/status` | AI 服务状态 |
 | POST | `/api/ai/rag/search` | RAG 语义搜索 |
 | GET | `/api/ai/recommendations` | AI 智能推荐 |
@@ -268,22 +273,21 @@ docker-compose up -d
 | WS | `/api/ws/chat` | WebSocket 实时客服 |
 | GET | `/api/admin/stats` | 管理后台统计 |
 
-完整 API 文档：启动后访问 `http://localhost:8001/docs`
-
 ---
 
-## 📊 AI 功能详解
+## AI 功能详解
 
 ### 1. 智能对话助手
-- 基于 DeepSeek V4 大模型（deepseek-v4-flash）
+- 基于 DeepSeek 大语言模型（deepseek-chat）
 - Function Calling 工具调用（搜索商品、查详情、语义搜索、个性化推荐）
-- SSE 流式响应，打字机效果
+- SSE 流式响应（`/api/ai/chat/stream`），打字机效果
 - 多轮对话上下文记忆
+- 无 API Key 时自动降级为内置话术
 
 ### 2. RAG 商品知识库
-- TF-IDF 向量化商品信息（名称+品牌+描述+分类+标签）
+- 手写 TF-IDF 向量化商品信息（名称+品牌+描述+分类+标签）
 - 余弦相似度语义检索，支持"适合跑步的鞋子"等自然语言查询
-- 无重型依赖（scikit-learn 实现），适配所有 Python 版本
+- 纯 Java 实现，零重型依赖，秒级启动
 
 ### 3. 协同过滤推荐
 - 基于用户浏览/购买/收藏行为的 User-Based 协同过滤
@@ -291,13 +295,13 @@ docker-compose up -d
 - 冷启动策略：相似用户 → 内容推荐 → 热销降级
 
 ### 4. WebSocket 实时客服
-- 双向实时消息推送
+- Spring WebSocket 双向实时消息推送
 - AI 先接，解决不了自动转人工
 - 心跳机制 + 断线重连
 
 ---
 
-## 🛡️ API 限流
+## API 限流
 
 | 接口类型 | 限制 | 说明 |
 |----------|------|------|
@@ -311,56 +315,85 @@ docker-compose up -d
 
 ---
 
-## 📐 数据库迁移（Alembic）
+## 数据库迁移（Flyway）
 
 ```bash
-# 生成迁移脚本（检测模型变更）
-alembic revision --autogenerate -m "description"
+# 迁移脚本位于 src/main/resources/db/migration/
+# H2:  h2/V1__init_schema.sql, h2/V2__add_sku_coupon_marketing.sql
+# MySQL: mysql/V1__init_schema.sql, mysql/V2__add_sku_coupon_marketing.sql
 
-# 应用迁移
-alembic upgrade head
-
-# 回滚一个版本
-alembic downgrade -1
-
-# 查看当前版本
-alembic current
-
-# 查看迁移历史
-alembic history
+# 应用启动时 Flyway 自动执行迁移，无需手动操作
+# 新增迁移脚本命名规则: V{n}__description.sql
 ```
 
 ---
 
-## 🏗 数据模型（13 张表）
+## 数据模型（13 张表）
 
 - **User** — 用户（买家/商家/管理员）
 - **Address** — 收货地址
 - **Category** — 商品分类
 - **Product** — 商品
+- **ProductSKU** — 商品 SKU
+- **ProductVariant** — 商品规格变体
 - **CartItem** — 购物车项
 - **Order** — 订单
 - **OrderItem** — 订单明细
 - **Review** — 商品评价
 - **ProductView** — 浏览记录（用于推荐）
 - **Favorite** — 收藏
+- **Coupon** — 优惠券
+- **UserCoupon** — 用户优惠券
+- **Banner** — 首页 Banner
+- **MarketingCampaign** — 营销活动
+- **SiteConfig** — 系统配置
 - **ChatSession** — 客服会话
 - **ChatMessage** — 客服消息
 - **SearchHistory** — 搜索历史
 
 ---
 
-## ✨ 前端体验优化
+## 配置说明
 
-- **骨架屏加载**：首页/商品列表/AI推荐/新品/特惠页全部采用 Shimmer 骨架屏，替代传统 Spinner
+主配置文件 `backend-java/src/main/resources/application.yml`：
+
+| 配置项 | 默认值 | 说明 |
+|--------|--------|------|
+| `server.port` | 8001 | 服务端口 |
+| `spring.profiles.active` | h2 | 数据库 profile（h2/mysql） |
+| `smartmall.jwt.secret-key` | dev-key | JWT 签名密钥（生产必须覆盖） |
+| `smartmall.llm.deepseek-api-key` | 空 | DeepSeek API Key |
+| `smartmall.rate-limit.enabled` | true | 是否启用限流 |
+| `smartmall.cache.redis-enabled` | true | 是否启用 Redis 缓存 |
+
+环境变量覆盖（Docker 部署用）：
+
+```bash
+SERVER_PORT=8000
+SPRING_PROFILES_ACTIVE=mysql
+DEEPSEEK_API_KEY=sk-xxxxx
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_DB=smartmall
+MYSQL_USER=root
+MYSQL_PASSWORD=smartmall123
+REDIS_HOST=localhost
+REDIS_PORT=6379
+```
+
+---
+
+## 前端体验优化
+
+- **骨架屏加载**：首页/商品列表/AI推荐/新品/特惠页全部采用 Shimmer 骨架屏
 - **图片懒加载淡入**：商品图片加载完成后 opacity 0→1 平滑过渡
-- **搜索防抖**：300ms debounce，避免每输入一个字符都触发搜索请求
+- **搜索防抖**：300ms debounce，避免每输入一个字符都触发搜索
 - **网络错误横幅**：API 请求失败时顶部显示红色提示条，恢复后自动消失
 - **紫蓝渐变 Hero**：固定背景视差 + 浮动商品卡片动画
 - **响应式布局**：适配桌面和移动端
 
 ---
 
-## 📝 License
+## License
 
 MIT

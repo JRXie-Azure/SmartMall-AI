@@ -1,4 +1,4 @@
-# ====== Python ======
+﻿# ====== Python ======
 __pycache__/
 *.py[cod]
 *$py.class
@@ -115,3 +115,20 @@ start8001.bat
 Dockerfile.frontend
 PROJECT_AUDIT.md
 PROJECT_STATUS.md
+
+# ====== Java / Maven ======
+backend-java/target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+.mvn/wrapper/maven-wrapper.jar
+
+# ====== H2 数据文件 ======
+backend-java/data/
+*.h2.db
+*.mv.db
+*.lock.db
