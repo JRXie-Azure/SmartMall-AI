@@ -132,3 +132,24 @@ backend-java/data/
 *.h2.db
 *.mv.db
 *.lock.db
+
+# ====== Python 后端（已弃用，仅保留 static/ 目录）======
+backend/app/
+backend/alembic/
+backend/tests/
+backend/.pytest_cache/
+backend/logs/
+backend/venv/
+backend/__pycache__/
+backend/*.py
+backend/*.pyc
+backend/Dockerfile
+backend/alembic.ini
+backend/pyproject.toml
+backend/requirements.txt
+backend/mysql_init.sql
+backend/.env
+backend/.env.example
+backend/.env.production
+backend/smartmall.db
+backend/*.log
